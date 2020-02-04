@@ -29,7 +29,7 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
 def seek(testmatrix):
     pass
 
-def probability(matrix):
+def findHoles(matrix):
     for reacounter in range(10):
         rida=matrix[reacounter]
         tyhi = (rida[0]==0)
@@ -60,10 +60,10 @@ def main():
     global testmatrix
     global outputmatrix
 
-    probability(testmatrix)
+    findHoles(testmatrix)
     testmatrix = testmatrix.T
     outputmatrix = outputmatrix.T
-    probability(testmatrix) 
+    findHoles(testmatrix) 
     testmatrix = testmatrix.T
     outputmatrix = outputmatrix.T
     print("----------------board---------------")
@@ -76,4 +76,5 @@ def main():
         for j in i:
             print("{:<4}".format(j), end="")
         print("\n")
+    print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
 main()
