@@ -2,28 +2,64 @@ import wx, wx.lib.mixins.inspection
 from string import ascii_uppercase
 from os.path import realpath, dirname, join
 
+class storypan(wx.Panel):
+   def __init__(self, *args, **kwargs):
+      super().__init__(*args, **kwargs)
+      self.parent = args[0]
+      size = wx.DisplaySize()
+      tsize = int(size[1]*0.023)
+      self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+
+      sizer = wx.BoxSizer()
+      
+      text = """
+      Kurjad sead on ühe paganama kiire korvetti sokutanud teie tagalasse moosi varastama.
+      Me ei saa neil põgeneda lasta, kähku moosivarusid päästma!!!
+      """
+      txt = wx.StaticText(self, label=text)
+      txt.SetForegroundColour('#5e97bf')
+
+      m2ngibtn = wx.Button(self, label='Järele neile!', style=wx.BORDER_NONE)
+      m2ngibtn.Bind(wx.EVT_BUTTON, self.m2ngi)
+      m2ngibtn.SetBackgroundColour('#DCAB4F')
+
+      sizer.Add(txt)
+      sizer.Add(m2ngibtn,0,wx.LEFT)
+      self.SetSizer(sizer)
+
+   def m2ngi(self, event):
+      self.Hide()
+      self.parent.laud.Show()
+      self.parent.Layout()
+
+class shop(wx.Panel):
+   def __init__(self, *args, **kwargs):
+      super().__init__(*args, **kwargs)
+
+
 class m2ngulaud(wx.Panel):
    "Mängu ajal kasutatav paneel, nupud flickerivad, peab teistesse state'idess bitmappe panema"
    def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.parent = args[0]
+      self.dragging = False
       self.SetBackgroundColour('#222222')
       # self.SetMinSize((1006, 491))
-
+      
+      # self.Bind(wx.EVT_ERASE_BACKGROUND, self.ebg)
+      self.Bind(wx.EVT_LEFT_UP, self.lmbup)
+      self.Bind(wx.EVT_MOTION, self.motion)
+      
       tagasibtn = wx.Button(self, label='Tagasi')
       tagasibtn.Bind(wx.EVT_BUTTON, self.kinni)
       sizer = wx.BoxSizer()
       self.laudSizer = wx.BoxSizer()
       sizer.Add(tagasibtn)
 
-      self.aship = wx.StaticBitmap(self, bitmap=self.loadbmp('aship.png'))
-      self.aship.Bind(wx.EVT_LEFT_DOWN, self.lmbdown)
-      self.Bind(wx.EVT_LEFT_UP, self.lmbup)
-      self.Bind(wx.EVT_MOTION, self.motion)
-      sizer.Add(self.aship)
-
-      self.dragbmp = wx.DragImage(self.loadbmp('aship.png'))
-      # s.Move()
+      self.ashipp = wx.StaticBitmap(self, bitmap=self.loadbmp('aship.png'))
+      self.ashipp.Bind(wx.EVT_LEFT_DOWN, self.lmbdown)
+      self.ashipp.dragbmp = wx.DragImage(self.loadbmp('aship.png'))
+      sizer.Add(self.ashipp)
 
       self.SetFont(wx.Font(18, wx.SWISS, wx.NORMAL, wx.NORMAL))
       self.laudSizer.AddStretchSpacer()
@@ -35,15 +71,34 @@ class m2ngulaud(wx.Panel):
 
    def lmbdown(self, event):
       print('lmbdown')
-      self.dragbmp.BeginDrag((0,0), self)
-      self.dragbmp.Show()
+      obj = event.GetEventObject()
+      pos = self.ScreenToClient(wx.GetMousePosition()) - obj.GetPosition()
+      obj.dragbmp.BeginDrag(pos, self)
+      obj.dragbmp.Show()
+      obj.Hide()
+      self.dragging = obj
 
    def lmbup(self, event):
-      print('lmbup')
-      self.dragbmp.EndDrag()
+      if self.dragging:
+         print('lmbup')
+         self.dragging.dragbmp.EndDrag()
+         self.dragging.Show()
+         self.dragging = False
 
    def motion(self, event):
-      print('motion')
+      if self.dragging:
+         self.dragging.dragbmp.Move(event.GetPosition())
+         # self.dragging.Rotate(90)
+
+   def ebg(self, evt):
+      try:
+         dc = evt.GetDC()
+      except:
+         dc = wx.ClientDC(self)
+         rect = self.GetUpdateRegion().GetBox()
+         dc.SetClippingRect(rect)
+      dc.Clear()
+      self.onErase(dc)
 
    def kinni(self, event):
       self.Hide()
@@ -63,7 +118,10 @@ class m2ngulaud(wx.Panel):
       for num in range(1,11):
          sizer = wx.BoxSizer()
          text = wx.StaticText(self, label=str(num))
-         sizer.Add(text, 1, wx.ALIGN_CENTER|wx.SHAPED)
+         text.SetForegroundColour('#5e97bf')
+         sizer.AddStretchSpacer()
+         sizer.Add(text, 0, wx.ALIGN_CENTER)
+         sizer.AddStretchSpacer()
          grid.Add(sizer, 0, wx.EXPAND)
       # grid.AddMany([(wx.StaticText(self, label=str(num)), 0, wx.EXPAND) for num in range(1, 11)])
       if AI:
@@ -73,16 +131,28 @@ class m2ngulaud(wx.Panel):
       text = 0
       for i in range(110):
          if i in [x for x in range(0, 100, 11)]:
-            cells.append((wx.StaticText(self, label=list(ascii_uppercase)[i//11]),0,wx.ALIGN_CENTER|wx.EXPAND))
+            sizer = wx.BoxSizer()
+            txt = wx.StaticText(self, label=list(ascii_uppercase)[i//11])
+            txt.SetForegroundColour('#5e97bf')
+            sizer.AddStretchSpacer()
+            sizer.Add(txt, 0, wx.ALIGN_CENTER)
+            sizer.AddStretchSpacer()
+            cells.append((sizer, 0, wx.EXPAND))
             text += 1
          else:
             name = str(i-text) + pool
             #bitmap=wx.StandardPaths.Get().GetDataDir()+ peaks olema exe puhul vist
             if i in (3, 19, 30, 69, 85):
-               btn = wx.BitmapButton(self, size=size, bitmap=self.loadbmp('aship.png'), name=name)
+               if AI:
+                  btn = wx.BitmapButton(self, size=size, bitmap=self.loadbmp('aship.png'), name=name)
+               else:
+                  btn = wx.BitmapButton(self, size=size, bitmap=self.loadbmp('aship.png'), name=name)
             else:
-               btn = wx.BitmapButton(self, size=size, bitmap=wx.Bitmap(wx.Image(join(dirname(realpath(__file__)),'meri.png')).Rescale(50,50), wx.BITMAP_TYPE_PNG), name=name)
-            btn.name = name
+               if AI:
+                  btn = wx.BitmapButton(self, size=size, bitmap=wx.Bitmap(wx.Image(join(dirname(realpath(__file__)),'meri.png')).Rescale(50,50), wx.BITMAP_TYPE_PNG), name=name)
+               else:
+                  btn = wx.BitmapButton(self, size=size, bitmap=wx.Bitmap(wx.Image(join(dirname(realpath(__file__)),'meri.png')).Rescale(50,50), wx.BITMAP_TYPE_PNG), name=name)
+               btn.name = name
             if AI:
                btn.Bind(wx.EVT_BUTTON, self.coord)
             cells.append((btn, 0, wx.EXPAND))
@@ -107,13 +177,16 @@ class m2ngulaud(wx.Panel):
          return print([0, int(name[0])])
       return print([int(name[0]), int(name[1])])
 
-   def loadbmp(self,file, bmp=True): 
+   def loadbmp(self,file, bmp=True, scale=True): 
       size = int(wx.DisplaySize()[1] * 0.5 / 10)
       size = (size, size)
-      if bmp:
+      if bmp and scale:
          return wx.Bitmap(wx.Image(join(dirname(realpath(__file__)),file)).Rescale(size[0],size[0]))
+      elif bmp:
+         return wx.Bitmap(wx.Image(join(dirname(realpath(__file__)),file)))
       img = wx.Image(join(dirname(realpath(__file__)),file))
-      img.Rescale(size[0],size[0])
+      if scale:
+         img.Rescale(size[0],size[0])
       return img
 
 
@@ -123,11 +196,17 @@ class MainMenu(wx.Panel):
       super().__init__(*args, **kwargs)
       self.SetBackgroundColour('#222222')
       self.parent = args[0]
-      tsize = int(wx.DisplaySize()[1]*0.03)
+      size = wx.DisplaySize()
+      tsize = int(size[1]*0.023)
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
-      sizer = wx.BoxSizer()
       vsizer = wx.BoxSizer(wx.VERTICAL)
+      sizer = wx.BoxSizer()
+      menusizer = wx.BoxSizer(wx.VERTICAL)
 
+      head = wx.StaticText(self, label='Laevade pommitamine',style=wx.ALIGN_CENTRE)
+      head.SetFont(wx.Font(int(tsize*3.5), wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+      head.SetForegroundColour('#5e97bf')
+      
       self.nimi = False
       nimi = wx.TextCtrl(self)
       nimi.SetMaxLength(20)
@@ -139,7 +218,11 @@ class MainMenu(wx.Panel):
       tase.SetEditable(False)
       tase.Bind(wx.EVT_COMBOBOX_CLOSEUP, self.raskus)
 
-      m2ngibtn = wx.Button(self, label='Mängi', style=wx.BORDER_NONE)
+      storybtn = wx.Button(self, label='Story', style=wx.BORDER_NONE)
+      storybtn.Bind(wx.EVT_BUTTON, self.story)
+      storybtn.SetBackgroundColour('#DCAB4F')
+      
+      m2ngibtn = wx.Button(self, label='Kiirmäng', style=wx.BORDER_NONE)
       m2ngibtn.Bind(wx.EVT_BUTTON, self.m2ngi)
       m2ngibtn.SetBackgroundColour('#DCAB4F')
 
@@ -147,19 +230,28 @@ class MainMenu(wx.Panel):
       kinnibtn.Bind(wx.EVT_BUTTON, lambda a: self.parent.Close())
       kinnibtn.SetBackgroundColour('#DCAB4F')
       
+      # menusizer.AddStretchSpacer(prop=6)
+      menusizer.Add(nimi,10,wx.EXPAND)     # fontsize upscalib kõike, peaks eraldi fondid panema
+      menusizer.AddStretchSpacer(prop=1)
+      menusizer.Add(tase,10,wx.EXPAND)
+      menusizer.AddStretchSpacer(prop=1)
+      menusizer.Add(storybtn,17,wx.EXPAND)
+      menusizer.AddStretchSpacer(prop=1)
+      menusizer.Add(m2ngibtn,17,wx.EXPAND)
+      menusizer.AddStretchSpacer(prop=1)
+      menusizer.Add(kinnibtn,17,wx.EXPAND)
+      # menusizer.AddStretchSpacer(prop=6)
+
       sizer.AddStretchSpacer(prop=3)
-      vsizer.AddStretchSpacer(prop=30)
-      vsizer.Add(nimi,5,wx.EXPAND)     # fontsize upscalib kõike, peaks eraldi fondid panema
-      vsizer.AddStretchSpacer(prop=1)
-      vsizer.Add(tase,5,wx.EXPAND)
-      vsizer.AddStretchSpacer(prop=1)
-      vsizer.Add(m2ngibtn,10,wx.EXPAND)
-      vsizer.AddStretchSpacer(prop=1)
-      vsizer.Add(kinnibtn,10,wx.EXPAND)
-      vsizer.AddStretchSpacer(prop=30)
-      sizer.Add(vsizer, 2, wx.EXPAND)
+      sizer.Add(menusizer, 2, wx.EXPAND)
       sizer.AddStretchSpacer(prop=3)
-      self.SetSizer(sizer)
+      
+      vsizer.AddStretchSpacer()
+      vsizer.Add(head,1,wx.EXPAND)
+      vsizer.AddStretchSpacer()
+      vsizer.Add(sizer,1,wx.EXPAND)
+      vsizer.AddStretchSpacer(3)
+      self.SetSizer(vsizer)
 
    def name(self, event):
       "annab m2ngija nime str()'ina"
@@ -179,9 +271,16 @@ class MainMenu(wx.Panel):
 
    def m2ngi(self, event):
       print(self.tase, self.nimi)
-      if self.tase and self.nimi:
+      if self.tase and self.nimi or True:
          self.Hide()
          self.parent.laud.Show()
+         self.parent.Layout()
+   
+   def story(self, event):
+      print(self.tase, self.nimi)
+      if self.tase and self.nimi or True:
+         self.Hide()
+         self.parent.story.Show()
          self.parent.Layout()
 
 class MainFrame(wx.Frame):
@@ -202,9 +301,11 @@ class MainFrame(wx.Frame):
    def InitUI(self):
       paneelisizer = wx.BoxSizer()
       self.menu = MainMenu(self)
+      self.story = storypan(self)
+      self.story.Hide()
       self.laud = m2ngulaud(self)
       self.laud.Hide()
-      paneelisizer.AddMany([(self.menu,1,wx.EXPAND),(self.laud,1,wx.EXPAND)])
+      paneelisizer.AddMany([(self.menu,1,wx.EXPAND),(self.story,1,wx.EXPAND),(self.laud,1,wx.EXPAND)])
       self.SetSizer(paneelisizer)
 
    def OnSize(self, event):
