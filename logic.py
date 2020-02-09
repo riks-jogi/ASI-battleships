@@ -5,16 +5,7 @@ import numpy as np
 
 laevad = [5,4,3,3,2]
 
-<<<<<<< HEAD
-playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2], #matrix kus hoitakse infot käikude kohta. need kahed on stopperid. ära puutu
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,1,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,1,0,0,2],
-=======
-testmatrix = np.array([[0,0,0,0,1,0,0,0,0,0,2],
->>>>>>> cd03f9168a76a772c757e9c32de62d0c1ef46d63
+playermatrix = np.array([[0,0,0,0,1,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,1,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
@@ -38,13 +29,7 @@ matrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
                    [0,0,0,0,0,0,0,0,0,0,2],
                    [2,2,2,2,2,2,2,2,2,2,2]])
 
-<<<<<<< HEAD
-def resetOutput(): #taastab tõenäosustabeli algse seisu
-    global outputmatrix
-    outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
-=======
 outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
->>>>>>> cd03f9168a76a772c757e9c32de62d0c1ef46d63
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
@@ -55,7 +40,19 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0]])
 
-<<<<<<< HEAD
+def resetOutput(): #taastab tõenäosustabeli algse seisu
+    global outputmatrix
+    outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0],
+                         [0,0,0,0,0,0,0,0,0,0]])
+
 def playerLasi(): #kontrollib AI laevade seisu ja updateib laske. tagastab 0-6 integeri
     pass
 
@@ -66,14 +63,6 @@ def aiLask(): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab
     else:
         seek()
     vastus = aiLasi(kordinaadid)
-=======
-
-##### Place Ships ---------------------------------------------------------------
-
-def randomCords(): # Valib suvaka koha laual, kus ei ole juba laeva
-    x = ""
-    y = ""
->>>>>>> cd03f9168a76a772c757e9c32de62d0c1ef46d63
     
     while x == "" and y == "":
         temp_x = randint(0,(len(matrix)-1))
@@ -82,14 +71,12 @@ def randomCords(): # Valib suvaka koha laual, kus ei ole juba laeva
             x = temp_x
             y = temp_y
     
-<<<<<<< HEAD
     if vastus == 1:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
         hitCoords.append(kordinaadid)
     elif vastus > 1 and vastus <6:
         laevad.remove(vastus)
         hitCoords.append(kordinaadid)
 
-sink = 0
 hitCoords = []
 
 #TEMP
@@ -150,14 +137,6 @@ def destroy(): #laseb põhja juba leitud laevu
     global hitCoords
     for i in hitCoords:
         leiaNaabrid(i)
-=======
-    return x, y
-
-def eiOleLaevaKõrval(x, y): # Kas antud cordi 1 block raadiuses on teine laev?
-    if matrix[y][x] != 1 and matrix[y-1][x+1] != 1 and matrix[y][x+1] != 1 and matrix[y+1][x+1] != 1 and matrix[y-1][x] != 1 and matrix[y+1][x] != 1 and matrix[y-1][x-1] != 1 and matrix[y][x-1] != 1 and matrix[y+1][x-1] != 1:
-        return True         # Ei ole laeva
-    return False            # On laev
->>>>>>> cd03f9168a76a772c757e9c32de62d0c1ef46d63
 
 def updateLaevadeSõnastik(laev, cords):  # Vajalik, sest on 2 suurus 3 laeva ja need muidu läheks sama key alla sõnastikus
     if laev in placedLaevad:             # Kui laev, mida paigutati juba key (juhtub ainult kolmega)
@@ -310,7 +289,6 @@ def playerLasi(x, y):
 
 ##### Main loop ---------------------------------------------------------------
 
-<<<<<<< HEAD
 def testseek():
     global playermatrix
     global outputmatrix
@@ -352,29 +330,3 @@ def testHunt():
         print("\n")
     print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
 testHunt()
-=======
-def main():
-   global testmatrix
-   global outputmatrix
-
-   findHoles(testmatrix)
-   testmatrix = testmatrix.T
-   outputmatrix = outputmatrix.T
-   findHoles(testmatrix) 
-   testmatrix = testmatrix.T
-   outputmatrix = outputmatrix.T
-   print("----------------board---------------")
-   for i in testmatrix:
-       for j in i:
-           print("{:<4}".format(j),end = "")
-       print("\n")
-   print("----------------prob----------------")
-   for i in outputmatrix:
-       for j in i:
-           print("{:<4}".format(j), end="")
-       print("\n")
-   print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
-
-   print(randomPlacement(laevad, outputmatrix))
-main()
->>>>>>> cd03f9168a76a772c757e9c32de62d0c1ef46d63
