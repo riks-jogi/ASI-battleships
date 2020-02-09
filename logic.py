@@ -61,7 +61,14 @@ def eiOleLaevaKõrval(x, y): # Kas antud cordi 1 block raadiuses on teine laev?
     if matrix[y][x] != 1 and matrix[y-1][x+1] != 1 and matrix[y][x+1] != 1 and matrix[y+1][x+1] != 1 and matrix[y-1][x] != 1 and matrix[y+1][x] != 1 and matrix[y-1][x-1] != 1 and matrix[y][x-1] != 1 and matrix[y+1][x-1] != 1:
         return True         # Ei ole laeva
     return False            # On laev
-                
+
+def updateLaevadeSõnastik(laev, cords):  # Vajalik, sest on 2 suurus 3 laeva ja need muidu läheks sama key alla sõnastikus
+    if laev in placedLaevad:             # Kui laev, mida paigutati juba key (juhtub ainult kolmega)
+        laev=3.1                         # Siis anna keyks
+        placedLaevad[laev] = cords       # Ja lisa sõnastikku
+    else:
+        placedLaevad[laev] = cords       # Muidu pane keyks laeva suurus ja lisa sõnastikku
+
 def placeLaev():            # Proovib paigutada laeva
     global laevad
     global placedLaevad
@@ -115,34 +122,34 @@ def placeLaev():            # Proovib paigutada laeva
                         placedCords.append([x+i, y])                # Lisa laeva blockide lisit kordinaat
                         matrix[y][x+i] = 1                          # Ning uuenda tabelit vastavalt
                     
-                    placedLaevad[laev] = placedCords                # Lisa laual olevate laevade listi laeva kordid
+                    updateLaevadeSõnastik(laev, placedCords)                # Lisa laual olevate laevade listi laeva kordid
                     placed = True                                   # Ütle, et mingi laev sai paigutatud
                 elif valik == "vasak":
                     for i in range(laev):
                         placedCords.append([x-i, y])
                         matrix[y][x-i] = 1
                     
-                    placedLaevad[laev] = placedCords
+                    updateLaevadeSõnastik(laev, placedCords)
                     placed = True
                 elif valik == "üles":
                     for i in range(laev):
                         placedCords.append([x, y-i])
                         matrix[y-i][x] = 1
                     
-                    placedLaevad[laev] = placedCords
+                    updateLaevadeSõnastik(laev, placedCords)
                     placed = True
                 elif valik == "alla":
                     for i in range(laev):
                         placedCords.append([x+1, y+i])
                         matrix[y+i][x] = 1
 
-                    placedLaevad[laev] = placedCords
+                    updateLaevadeSõnastik(laev, placedCords)
                     placed = True    
 
             if placed:
                 laevad.remove(laev) # Eemalda olemasolevatest laev paigutatud laevades
 
-def paigutaLaevad()         # Paigutab AI lauale laevad
+def paigutaLaevad():                    # Paigutab AI lauale laevad
     while laevad:                       # Kuniks on kõik laevad paigutatud               
         placeLaev()                     # Proovi paigatada laev
 
@@ -184,6 +191,11 @@ def fillrow(rida, start, end):
 def playerLasi(x, y):
     cords = [x, y]                          # Lasu kordinaanid listina, nagu on ka sõnastiksu
     for i in placedLaevad.keys():           # Iterate läbi iga meie laual oleva laeva
+        if i == 3.1:                         # Suurus 3 kahte paati eristatud nii, et üks neist on 3.1
+            laevaSuurus = 3                 # Laevasuurus siiski 3, isegi, kui tähistatud 3.1
+        else:
+            laevaSuurus = i                 # Teisi laeva suurusi 1, seega saame otsu suuruse võtta keyst
+        
         if cords in placedLaevad[i]:        # Kui lasu kordinaat on sama mingi meie paadiosaga
             oldMap = placedLaevad[i]        # Vanad selle laeva allesolevate tükkkide cordid
             oldMap.pop(oldMap.index(cords)) # Võta olemasolevate tükkide cordidest ära pihta saanu
@@ -194,7 +206,7 @@ def playerLasi(x, y):
                 if not placedLaevad:        # Kui sõnastikus pole keysid (laevu)
                     return 6                # Ütle, et kaotasime
                 else:                       # Kui sõnastikus on veel keysid (laevu)
-                    return i                # Ütle põhja lastud laeva suurus
+                    return laevaSuurus      # Ütle põhja lastud laeva suurus
             else:                           # Kui laeval on veel mingi tükk alles
                 return 1                    # Ütle, et saadi pihta
     return 0                                # Kui kuskile pihta ei saadud, vasta vastavalt
