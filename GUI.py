@@ -127,6 +127,7 @@ class m2ngulaud(wx.Panel):
       self.sinked = 0
       self.hits = [[] for x in range(5)]
       self.usedcoord = []
+      self.lasud = []
       self.laevad = []
       self.ori = 'v'
       size = wx.DisplaySize()
@@ -222,14 +223,17 @@ class m2ngulaud(wx.Panel):
       bot.Bind(wx.EVT_LEFT_DOWN, self.lmbdown)
       top.Bind(wx.EVT_LEFT_DOWN, self.lmbdown)
       self.laevad.append({bot:None})
+      self.lasud.append({bot:False})
       vsizer.Add(top)
       for x in range(mids):
          mid = wx.StaticBitmap(self, bitmap=self.paat_mid_v)
          mid.dragbmp = wx.DragImage(self.paat_mid_v)
          mid.Bind(wx.EVT_LEFT_DOWN, self.lmbdown)
          self.laevad[-1][mid] = None
+         self.lasud[-1][mid] = False
          vsizer.Add(mid)
       self.laevad[-1][top] = None
+      self.lasud[-1][top] = False
       vsizer.Add(bot)
       return vsizer
 
@@ -624,18 +628,22 @@ class m2ngulaud(wx.Panel):
 
       elif lask == 6:
          self.tulem.SetLabel('Võitsid!')
-      # ailask = aiLask()
-      ailask = (2,0)
+      aiLask()
+      
+   def aiLasi(self,ailask):
       lask = 12 + 11 * ailask[0] + ailask[1]
-      for laev in self.laevad:
+      for laev in range(len(self.laevad)):
          leidis = False
-         for osa in laev:
-            if lask == laev[osa]:
-               # laev[osa] == str(lask)
-               osad = list(laev.values())
+         print(len((self.laevad[laev])))
+         for osa in range(len((self.laevad[laev]))):
+            keys = list(self.laevad[laev].keys())
+            osaa = keys[osa]
+            print(osaa)
+            if lask == self.laevad[laev][osaa]:
+               print('sai edasi')
+               osad = list(self.laevad[laev].values())
                osad.sort()
                leidis = True
-               print('leidis laeva',osad[0]+1,osad[1])
                if osad[0]+1 == osad[1]:
                   if lask == osad[0]:
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_bot_hit_h)
@@ -643,6 +651,13 @@ class m2ngulaud(wx.Panel):
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_top_hit_h)
                   else:
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_mid_hit_h)
+                  self.lasud[laev][osaa] = True
+                  sinks = list(self.lasud[laev].values())
+                  for sink in sinks:
+                     if not sink:
+                        self.sinked += 1
+                        return 1
+                  lastlaev = len(self.lasud[laev])
                else:
                   if lask == osad[0]:
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_top_hit_v)
@@ -650,13 +665,25 @@ class m2ngulaud(wx.Panel):
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_bot_hit_v)
                   else:
                      self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.paat_mid_hit_v)
+                  self.lasud[laev][osaa] = True
+                  sinks = list(self.lasud[laev].values())
+                  for sink in sinks:
+                     if not sink:
+                        self.sinked += 1
+                        return 1
+                  lastlaev = len(self.lasud[laev])
+                  
+
                self.sinked += 1
                if self.sinked == 17:
                   self.tulem.SetLabel('Kaotasid')
+                  return 6
+               else:
+                  return lastlaev
                break
-         if not leidis:
-            self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.sulpsti)
-         break
+      if not leidis:
+         self.grid.GetChildren()[lask].GetWindow().SetBitmap(self.sulpsti)
+         return 0
 
    def loadbmp(self,file, bmp=True, scale=True): 
       size = int(wx.DisplaySize()[1] * 0.5 / 10)
