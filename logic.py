@@ -6,8 +6,9 @@ laevad = [5,4,3,3,2]
 playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2], #matrix kus hoitakse infot käikude kohta. need kahed on stopperid. ära puutu
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,1,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,1,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
@@ -28,6 +29,7 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0], #matrix mille peale liidetakse t
 
 
 def resetOutput(): #taastab tõenäosustabeli algse seisu
+    global outputmatrix
     outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
@@ -42,40 +44,82 @@ def resetOutput(): #taastab tõenäosustabeli algse seisu
 def playerLasi(): #kontrollib AI laevade seisu ja updateib laske. tagastab 0-6 integeri
     pass
 
-
-boatFound = False
 def aiLask(): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab vastuseks 0-6 integeri
 
-    if boatFound == True:
-        kordinaadid = destroy()
+    if hitCoords:
+        destroy()
     else:
-        kordinaadid = seek()
+        seek()
     vastus = aiLasi(kordinaadid)
     
     
     if vastus == 1:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
-        lasthit = kordinaadid
-        boatFound = True
-    if vastus > 1 and vastus <6:
-        sink = vastus
+        hitCoords.append(kordinaadid)
+    elif vastus > 1 and vastus <6:
+        laevad.remove(vastus)
         hitCoords.append(kordinaadid)
 
 sink = 0
 hitCoords = []
 
+#TEMP
+def aiLasi(pask):
+    return 1
+#TEMP
+
 def leiaNaabrid(coords): #EI OLE VALMIS
     #üleval
-    for i in range(1,5):
-        if playermatrix[coords[0]][coords[1]+i] == 0:
+    ruum = coords[1]-4 #trust me
+    if ruum > 0:
+        ruum = 0
+    for i in range(1,5 + ruum):
+        if playermatrix[coords[1]-i][coords[0]] == 0 and (coords[0],coords[1]-i) not in hitCoords:
             for j in [2,3,4,5]:
                 if j in laevad and j >= i+1:
-                    outputmatrix[coords[0]][coords[1]+i] += 1
+                    outputmatrix[coords[1]-i][coords[0]] += 1
+        elif playermatrix[coords[1]-i][coords[0]] != 0:
+            break
+    #all
+    ruum = 9 -coords[1]  # trust me
+    if ruum < 0:
+        ruum = 0
+    for i in range(1, ruum+1):
+        if playermatrix[coords[1] + i][coords[0]] == 0 and (coords[0], coords[1] + i) not in hitCoords:
+            for j in [2, 3, 4, 5]:
+                if j in laevad and j >= i + 1:
+                    outputmatrix[coords[1] + i][coords[0]] += 1
+        elif playermatrix[coords[1] - i][coords[0]] != 0:
+            break
+    #vasak
+    ruum = coords[0] - 4  # trust me
+    if ruum > 0:
+        ruum = 0
+    for i in range(1, 5 + ruum):
+        if playermatrix[coords[1]][coords[0] - i] == 0 and (coords[0]- i, coords[1]) not in hitCoords:
+            for j in [2, 3, 4, 5]:
+                if j in laevad and j >= i + 1:
+                    outputmatrix[coords[1]][coords[0] - i] += 1
+        elif playermatrix[coords[1] - i][coords[0]] != 0:
+            break
+    #parem
+    ruum = 9 - coords[0]  # trust me
+    if ruum < 0:
+        ruum = 0
+    for i in range(1, ruum + 1):
+        if (coords[0] + i, coords[1]) in hitCoords:
+            break
+        elif playermatrix[coords[1]][coords[0] + i] == 0 and (coords[0] + i, coords[1]) not in hitCoords:
+            for j in [2, 3, 4, 5]:
+                if j in laevad and j >= i + 1:
+                    outputmatrix[coords[1]][coords[0] + i] += 1
+        elif playermatrix[coords[1] - i][coords[0]] != 0:
+            break
 
 
 def destroy(): #laseb põhja juba leitud laevu
     global hitCoords
     for i in hitCoords:
-        leiaNaabrid(hitCoords)
+        leiaNaabrid(i)
 
 def seek(): #otsib laevu tõenäosuse põhjal
     resetOutput()
@@ -119,7 +163,7 @@ def fillrow(rida, start, end): #täidab leitud tühjad kohad tõenäosustabelist
                 lisa += probtable[pikkus-2][l-2][i]
         outputmatrix[rida][start+i] += lisa 
 
-def main():
+def testseek():
     global playermatrix
     global outputmatrix
 
@@ -140,4 +184,23 @@ def main():
             print("{:<4}".format(j), end="")
         print("\n")
     print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
-main()
+#testseek()
+
+def testHunt():
+    global hitCoords
+    hitCoords.append((3,3))
+    #hitCoords.append((4,5))
+    destroy()
+
+    print("----------------board---------------")
+    for i in playermatrix:
+        for j in i:
+            print("{:<4}".format(j),end = "")
+        print("\n")
+    print("----------------prob----------------")
+    for i in outputmatrix:
+        for j in i:
+            print("{:<4}".format(j), end="")
+        print("\n")
+    print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
+testHunt()
