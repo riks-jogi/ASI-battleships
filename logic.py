@@ -1,21 +1,36 @@
-from probabilityTable import probtable
+from probabilityTable import  probtable
+from random import randint
+import random
 import numpy as np
+placedLaevad = {}
 
 laevad = [5,4,3,3,2]
 
-playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2], #matrix kus hoitakse infot käikude kohta. need kahed on stopperid. ära puutu
+testmatrix = np.array([[0,0,0,0,1,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,1,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,1,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,1,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
-                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,1,0,0,0,2],
                        [0,0,0,0,0,0,0,0,0,0,2],
                        [2,2,2,2,2,2,2,2,2,2,2]])
 
-outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0], #matrix mille peale liidetakse tõenäosus. iga kasutusega taastatakse algne seis
+matrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [0,0,0,0,0,0,0,0,0,0,2],
+                   [2,2,2,2,2,2,2,2,2,2,2]])
+
+outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
@@ -27,73 +42,116 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0], #matrix mille peale liidetakse t
                          [0,0,0,0,0,0,0,0,0,0]])
 
 
-def resetOutput(): #taastab tõenäosustabeli algse seisu
-    outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0],
-                         [0,0,0,0,0,0,0,0,0,0]])
+##### Place Ships ---------------------------------------------------------------
 
-def playerLasi(): #kontrollib AI laevade seisu ja updateib laske. tagastab 0-6 integeri
+def randomCords(): # Valib suvaka koha laual, kus ei ole juba laeva
+    x = ""
+    y = ""
+    
+    while x == "" and y == "":
+        temp_x = randint(0,(len(matrix)-1))
+        temp_y = randint(0,(len(matrix)-1))
+        if matrix[temp_x][temp_y] == 0:
+            x = temp_x
+            y = temp_y
+    
+    return x, y
+
+def eiOleLaevaKõrval(x, y): # Kas antud cordi 1 block raadiuses on teine laev?
+    if matrix[y][x] != 1 and matrix[y-1][x+1] != 1 and matrix[y][x+1] != 1 and matrix[y+1][x+1] != 1 and matrix[y-1][x] != 1 and matrix[y+1][x] != 1 and matrix[y-1][x-1] != 1 and matrix[y][x-1] != 1 and matrix[y+1][x-1] != 1:
+        return True         # Ei ole laeva
+    return False            # On laev
+                
+def placeLaev():            # Proovib paigutada laeva
+    global laevad
+    global placedLaevad
+
+    placed = False
+    x, y = randomCords()
+    laev = laevad[randint(0, len(laevad)) - 1]                      # Võtab suvaka numbri laevade listi pikkusest, teeb sellest indexi ja valib selle indexiga listist laeva
+    
+    if laev in laevad and matrix[y][x] != 1:                        # Kui valitud laev ja kordinaanid ppole juba kasutuses
+        teljed = {}
+        if x+laev-1 < 10 and x-laev+1 >= 0:                         # Kas x teljel on selle laeva jaoks ruumi
+            teljed["0"] = True
+        if y+laev-1 < 10 and y-laev+1 >= 0:                         # Kas y teljel on selle laeva jaoks ruumi?
+            teljed["1"] = True
+
+        if teljed:                                                  # Kui leaval on mingil teljel ruumi
+            telg = random.choice(list(teljed.keys()))               # Vali suvakas telg sobivatest
+            võimalused = []
+            if telg == "0":                                         # Kui telg on x
+                parem = []
+                vasak = []
+                for ruut in range(laev):                            # Kontrollib laeva suurusele vastava korra, kas selle ruudu kõrval on teine laev
+                    parem.append(eiOleLaevaKõrval(x+(1*ruut), y))   # Kontrollib paremale poole
+                    vasak.append(eiOleLaevaKõrval(x-(1*ruut), y))   # Kontrollib vasakule poole
+
+                if all(parem):                                      # Kui kõik ruutudest ja nende raadius tühi
+                    võimalused.append('parem')
+                if all(vasak):
+                    võimalused.append('vasak')
+            
+            if telg == "1":                                         # Kui telg on y, sama teema
+                üles = []
+                alla = []
+                for ruut in range(laev):
+                    üles.append(eiOleLaevaKõrval(x, y-(1*ruut)))
+                    alla.append(eiOleLaevaKõrval(x, y+(1*ruut)))
+
+                if all(üles) and all(alla):
+                    võimalused.append('üles')
+                    võimalused.append('alla')
+                elif all(üles):
+                    võimalused.append('üles')
+                elif all(alla):
+                    võimalused.append('alla')
+    
+            if võimalused:                                          # Kui on mingi suund, kuhu laev saaks minna
+                valik = võimalused[randint(0, len(võimalused) - 1)] # Vali nendest suvaline
+                placedCords = []
+                if valik == "parem":                                # Kui valik paremale poole
+                    for i in range(laev):
+                        placedCords.append([x+i, y])                # Lisa laeva blockide lisit kordinaat
+                        matrix[y][x+i] = 1                          # Ning uuenda tabelit vastavalt
+                    
+                    placedLaevad[laev] = placedCords                # Lisa laual olevate laevade listi laeva kordid
+                    placed = True                                   # Ütle, et mingi laev sai paigutatud
+                elif valik == "vasak":
+                    for i in range(laev):
+                        placedCords.append([x-i, y])
+                        matrix[y][x-i] = 1
+                    
+                    placedLaevad[laev] = placedCords
+                    placed = True
+                elif valik == "üles":
+                    for i in range(laev):
+                        placedCords.append([x, y-i])
+                        matrix[y-i][x] = 1
+                    
+                    placedLaevad[laev] = placedCords
+                    placed = True
+                elif valik == "alla":
+                    for i in range(laev):
+                        placedCords.append([x+1, y+i])
+                        matrix[y+i][x] = 1
+
+                    placedLaevad[laev] = placedCords
+                    placed = True    
+
+            if placed:
+                laevad.remove(laev) # Eemalda olemasolevatest laev paigutatud laevades
+
+def paigutaLaevad()         # Paigutab AI lauale laevad
+    while laevad:                       # Kuniks on kõik laevad paigutatud               
+        placeLaev()                     # Proovi paigatada laev
+
+##### AI Playing functions ---------------------------------------------------------------
+
+def seek(testmatrix):
     pass
 
-
-boatFound = False
-def aiLask(): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab vastuseks 0-6 integeri
-
-    if boatFound == True:
-        kordinaadid = destroy()
-    else:
-        kordinaadid = seek()
-    vastus = aiLasi(kordinaadid)
-    
-    
-    if vastus == 1:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
-        lasthit = kordinaadid
-        boatFound = True
-    if vastus > 1 and vastus <6:
-        sink = vastus
-        hitCoords.append(kordinaadid)
-
-sink = 0
-hitCoords = []
-
-def leiaNaabrid(coords): #EI OLE VALMIS
-    #üleval
-    for i in range(1,5):
-        if playermatrix[coords[0]][coords[1]+i] == 0:
-            for j in [2,3,4,5]:
-                if j in laevad and j >= i+1:
-                    outputmatrix[coords[0]][coords[1]+i] += 1
-
-
-def destroy(): #laseb põhja juba leitud laevu
-    global hitCoords
-    for i in hitCoords:
-        leiaNaabrid(hitCoords)
-
-def seek(): #otsib laevu tõenäosuse põhjal
-    resetOutput()
-    global playermatrix
-    global outputmatrix
-
-    findHoles(playermatrix)
-    playermatrix = playermatrix.T
-    outputmatrix = outputmatrix.T
-    findHoles(playermatrix) 
-    playermatrix = playermatrix.T
-    outputmatrix = outputmatrix.T
-
-    return (int(str(outputmatrix.argmax())[1]), int(str(outputmatrix.argmax())[0]))
-
-
-
-def findHoles(matrix): #leiab tõenäosuse arvutamiseks laualt tühjad kohad, kutsub välja fillrow funktsiooni
+def findHoles(matrix):
     for reacounter in range(10):
         rida=matrix[reacounter]
         tyhi = (rida[0]==0)
@@ -110,34 +168,60 @@ def findHoles(matrix): #leiab tõenäosuse arvutamiseks laualt tühjad kohad, ku
                     tyhjaalgus=i
                     tyhi=True
 
-def fillrow(rida, start, end): #täidab leitud tühjad kohad tõenäosustabelist väärtustega outputmatrixisse
+def fillrow(rida, start, end):
     pikkus = end - start
     for i in range(pikkus):
         lisa = 0
         for l in [2,3,4,5]:
             if l in laevad and l<=pikkus:
+                #print(f"Küsin elementi {pikkus-2}, {l-2}, {i}")
                 lisa += probtable[pikkus-2][l-2][i]
-        outputmatrix[rida][start+i] += lisa 
+        outputmatrix[rida][start+i] += lisa
+
+
+##### Handle opponents shot ---------------------------------------------------------------
+
+def playerLasi(x, y):
+    cords = [x, y]                          # Lasu kordinaanid listina, nagu on ka sõnastiksu
+    for i in placedLaevad.keys():           # Iterate läbi iga meie laual oleva laeva
+        if cords in placedLaevad[i]:        # Kui lasu kordinaat on sama mingi meie paadiosaga
+            oldMap = placedLaevad[i]        # Vanad selle laeva allesolevate tükkkide cordid
+            oldMap.pop(oldMap.index(cords)) # Võta olemasolevate tükkide cordidest ära pihta saanu
+            placedLaevad[i] = oldMap        # Uuenda sõnastikus paati, nüüd ilma pihta saanud tüki
+            
+            if not oldMap:                  # Kui paadil on kõik cordid ära võetud, aga põhjas
+                placedLaevad.pop(i, None)   # Võta ära vastav key laevade sõnastukust
+                if not placedLaevad:        # Kui sõnastikus pole keysid (laevu)
+                    return 6                # Ütle, et kaotasime
+                else:                       # Kui sõnastikus on veel keysid (laevu)
+                    return i                # Ütle põhja lastud laeva suurus
+            else:                           # Kui laeval on veel mingi tükk alles
+                return 1                    # Ütle, et saadi pihta
+    return 0                                # Kui kuskile pihta ei saadud, vasta vastavalt
+
+##### Main loop ---------------------------------------------------------------
 
 def main():
-    global playermatrix
-    global outputmatrix
+   global testmatrix
+   global outputmatrix
 
-    findHoles(playermatrix)
-    playermatrix = playermatrix.T
-    outputmatrix = outputmatrix.T
-    findHoles(playermatrix) 
-    playermatrix = playermatrix.T
-    outputmatrix = outputmatrix.T
-    print("----------------board---------------")
-    for i in playermatrix:
-        for j in i:
-            print("{:<4}".format(j),end = "")
-        print("\n")
-    print("----------------prob----------------")
-    for i in outputmatrix:
-        for j in i:
-            print("{:<4}".format(j), end="")
-        print("\n")
-    print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
+   findHoles(testmatrix)
+   testmatrix = testmatrix.T
+   outputmatrix = outputmatrix.T
+   findHoles(testmatrix) 
+   testmatrix = testmatrix.T
+   outputmatrix = outputmatrix.T
+   print("----------------board---------------")
+   for i in testmatrix:
+       for j in i:
+           print("{:<4}".format(j),end = "")
+       print("\n")
+   print("----------------prob----------------")
+   for i in outputmatrix:
+       for j in i:
+           print("{:<4}".format(j), end="")
+       print("\n")
+   print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])+1}:{int(str(outputmatrix.argmax())[0])+1}")
+
+   print(randomPlacement(laevad, outputmatrix))
 main()
