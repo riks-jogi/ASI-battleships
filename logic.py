@@ -334,6 +334,8 @@ def testseek():
     findHoles(playermatrix) 
     playermatrix = playermatrix.T
     outputmatrix = outputmatrix.T
+
+    return outputmatrix.argmax
     print("----------------board---------------")
     for i in playermatrix:
         for j in i:
@@ -363,6 +365,6 @@ def testHunt():
         for j in i:
             print("{:<4}".format(j), end="")
         print("\n")
-    print(f"suurim tõenäosus on ruudul {int(str(outputmatrix.argmax())[1])}:{int(str(outputmatrix.argmax())[0])}")
+    print(f"suurim tõenäosus on ruudul {:{int(str(outputmatrix.argmax())[0])}")
 testHunt()
 

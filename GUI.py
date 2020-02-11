@@ -291,15 +291,26 @@ class m2ngulaud(wx.Panel):
             self.dragging = obj
 
    def lmbup(self, event):
-      if self.dragging:
-         self.dragging.dragbmp.EndDrag()
-         self.dragging = False
-         self.lastsnap = False
-         self.ori = 'v'
-         self.splaced += 1
-         if self.splaced == 5:
-            self.splaced = True
-
+         if self.dragging:
+            for laev in self.laevad:
+               if self.dragging in laev:
+                  if laev[self.dragging] != None:
+                     self.dragging.dragbmp.EndDrag()
+                     self.dragging = False
+                     self.lastsnap = False
+                     self.ori = 'v'
+                     self.splaced += 1
+                     if self.splaced == 5:
+                           self.splaced = True
+                  else:
+                        self.dragging.dragbmp.Hide()
+                        self.dragging.dragbmp.EndDrag()
+                        self.dragging = False
+                        self.ori = 'v'
+                        for osa in laev:
+                           osa.Show()
+                  return
+                  
    def motion(self, event):
       if self.dragging:
          pos = event.GetPosition()
@@ -588,17 +599,16 @@ class m2ngulaud(wx.Panel):
       if type(self.splaced) != int and len(name) == 2:
          if (0, int(name[0])) not in self.usedcoord:
             self.usedcoord.append((0, int(name[0])))
-            # lask = playerLasi(0, int(name[0]))
+            lask = playerLasi(0, int(name[0]))
             print([0, int(name[0])])
          else:
             return
       elif type(self.splaced) != int and (int(name[0]), int(name[1])) not in self.usedcoord:
          self.usedcoord.append((int(name[0]), int(name[1])))
-         # lask = playerLasi(int(name[0]), int(name[1]))
+         lask = playerLasi(int(name[0]), int(name[1]))
          print([int(name[0]), int(name[1])])
       else:
          return
-      lask = 1
       if lask == 0:
          btn.SetBitmap(self.sulpsti)
       elif lask in range(1,6):
@@ -668,7 +678,7 @@ class m2ngulaud(wx.Panel):
 
       elif lask == 6:
          self.tulem.SetLabel('Võitsid!')
-      aiLask()
+      aiLask(self)
 
    def aiLasi(self,ailask):
       lask = 12 + 11 * ailask[0] + ailask[1]
@@ -1039,15 +1049,16 @@ def replaceIfZero(x, y):
     if playermatrix[y][x] == 0:
         playermatrix[y][x] = 1
 
-def aiLask(): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab vastuseks 0-6 integeri
+def aiLask(self): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab vastuseks 0-6 integeri
    global hitCoords
 
    resetOutput()
    if hitCoords:
-      destroy()
+      kordinaadid = destroy()
    else:
-      seek()
-   vastus = app.MF.laud.aiLasi(koordinaaid)
+      kordinaadid = seek()
+
+   vastus = self.aiLasi(kordinaadid)
    
    if vastus == 1:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
       hitCoords.append(kordinaadid)
@@ -1124,13 +1135,28 @@ def leiaNaabrid(coords): #On natuke valmis
         elif playermatrix[coords[1] - i][coords[0]] != 0:
             break
 
+def seek():
+    global playermatrix
+    global outputmatrix
+
+    findHoles(playermatrix)
+    playermatrix = playermatrix.T
+    outputmatrix = outputmatrix.T
+    findHoles(playermatrix) 
+    playermatrix = playermatrix.T
+    outputmatrix = outputmatrix.T
+
+    vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
+    return vastus
 
 def destroy(): #laseb põhja juba leitud laevu
     global hitCoords
     global outputmatrix
     for i in hitCoords:
         leiaNaabrid(i)
-    return np.argmax(outputmatrix)
+
+    vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
+    return vastus
 
 def findHoles(matrix):
     for reacounter in range(10):
@@ -1185,9 +1211,4 @@ def playerLasi(x, y):
                 return 1                    # Ütle, et saadi pihta
     return 0                                # Kui kuskile pihta ei saadud, vasta vastavalt
 
-
-
-
-
-if __name__ == '__main__':
-   gui = app()
+gui = app()
