@@ -109,9 +109,9 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       tsize = int(size[1]*0.023)
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
       
-      sizer = wx.BoxSizer(wx.VERTICAL)
-      h1sizer = wx.BoxSizer()
-      h2sizer = wx.BoxSizer()
+      sizer = wx.WrapSizer(wx.VERTICAL)
+      h1sizer = wx.WrapSizer()
+      h2sizer = wx.WrapSizer()
       
       txt = "Mängu on loonud 1}{nd grupp: Mihkel, Richard, Taeri, Georg."
       tegijad = wx.StaticText(self, label=txt)
@@ -122,17 +122,17 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       tagasibtn.SetBackgroundColour('#DCAB4F')
 
       loret = """*insert epically long heroic lore here*
-      *insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*"""
+*insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*"""
       lore = wx.StaticText(self, label=loret)
       lore.SetForegroundColour('#5e97bf')
 
@@ -147,8 +147,6 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       sizer.AddStretchSpacer()
       sizer.Add(h2sizer,4,wx.ALIGN_CENTER)
       self.SetSizer(sizer)
-      self.parent.Unbind(wx.EVT_SIZE)
-      self.parent.Unbind(wx.EVT_IDLE)
       self.SetupScrolling(scroll_x=False)
 
    def kinni(self, event):
@@ -335,16 +333,19 @@ class m2ngulaud(wx.Panel):
                            if self.dragging in self.laevad[laev]:
                               self.dragtile = list(self.laevad[laev].keys()).index(self.dragging)
                               if self.ori == 'v' and child+11*self.dragtile-11*(len(self.laevad[laev])-1) >= 12 and child+11*self.dragtile <= 120:
+                                 tiles = []
+                                 print(self.dragtile)
                                  for i in range(len(self.laevad[laev])):
-                                    tile = child+11*i-11*(len(self.laevad[laev])-1)
-                                    tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
-                                    values = []
-                                    for ship in self.laevad:
-                                       if self.dragging not in ship:
-                                          values += ship.values()
-                                    for check in tiles:
-                                       if check in values:
-                                          return
+                                    tile = child+11*i-11*(len(self.laevad[laev])-self.dragtile) # self.dragtile mingi muu
+                                    tiles += [tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1]
+                                 values = []
+                                 for ship in self.laevad:
+                                    if self.dragging not in ship:
+                                       values += ship.values()
+                                 print(tiles, values)
+                                 for check in tiles:
+                                    if check in values:
+                                       return
                                  self.dragging.dragbmp.Hide()
                                  if self.lastsnap:
                                     for i in self.lastsnap:
@@ -887,12 +888,15 @@ class MainFrame(wx.Frame):
 
    def OnSize(self, event):
       if self.infopan.IsShown():
-         size = self.GetSize()
-         vsize = self.GetVirtualSize()
-         self.SetVirtualSize((size[0],vsize[1]))
-      else:
+         size = self.infopan.GetSize()
+         vsize = self.infopan.GetVirtualSize()
+         self.infopan.SetVirtualSize((size[0],vsize[1]))
+         event.Skip()
+      elif self.laud.IsShown():
          self.resizing = True
          self.laud.snaparea = False
+      else:
+         event.Skip()
 
    def OnIdle(self, event):
       if self.resizing:
