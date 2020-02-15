@@ -47,7 +47,7 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0]])
 
-class storypan(wx.Panel):
+class storypan(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.parent = args[0]
@@ -57,48 +57,161 @@ class storypan(wx.Panel):
       
 
       sizer = wx.BoxSizer()
+      msizer = wx.BoxSizer(wx.VERTICAL)
+      storysiz = wx.BoxSizer(wx.VERTICAL)
+
+      self.btns = ['Järele neile', 'Rünnakule', 'Andke neile','Rindesse','Kallale neile']
       
-      text = """
+      chapter1 = """
       Kurjad sead on ühe paganama kiire korvetti sokutanud teie tagalasse moosi varastama.
       Me ei saa neil põgeneda lasta, kähku moosivarusid päästma!!!
       """
+
+      chapter2="""
+      Admiral:"Nomaitea, võiks natse ründama minna."
+      Ole üle admirali saamatusest ning mine võida üks lahing.
+      """
+      
+      storysiz.Add(self.chapter(chapter1))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      
+      btn = wx.Button(self, label='Tagasi', style=wx.BORDER_NONE)
+      btn.Bind(wx.EVT_BUTTON, self.kinni)
+      btn.SetBackgroundColour('#DCAB4F')
+
+      msizer.Add(btn)
+      sizer.Add(msizer)
+      sizer.Add(storysiz)
+      self.SetSizer(sizer)
+      self.SetupScrolling(scroll_x=False)
+
+   def chapter(self, text):
+      sizer = wx.BoxSizer()
       txt = wx.StaticText(self, label=text)
       txt.SetForegroundColour('#5e97bf')
-      
-      m2ngibtn = wx.Button(self, label='Järele neile!', style=wx.BORDER_NONE)
+      m2ngibtn = wx.Button(self, label=self.btns[randint(0,len(self.btns))-1], style=wx.BORDER_NONE)
       m2ngibtn.Bind(wx.EVT_BUTTON, self.m2ngi)
       m2ngibtn.SetBackgroundColour('#DCAB4F')
-      
-      sizer.Add(m2ngibtn,0,wx.LEFT)
       sizer.Add(txt)
-      self.SetSizer(sizer)
+      sizer.AddStretchSpacer()
+      sizer.Add(m2ngibtn,1,wx.CENTER)
+      sizer.AddStretchSpacer()
+      return sizer
 
    def m2ngi(self, event):
       self.Hide()
       self.parent.laud.Show()
       self.parent.Layout()
+   
+   def kinni(self, event):
+      self.Hide()
+      self.parent.menu.Show()
+      self.parent.Layout()
 
-class shop(wx.Panel):
+class shop(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.parent = args[0]
       size = wx.DisplaySize()
       tsize = int(size[1]*0.023)
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+      self.popped = False
 
       sizer = wx.BoxSizer()
-      
+      msizer = wx.BoxSizer(wx.VERTICAL)
+      items = wx.WrapSizer()
+
       tagasibtn = wx.Button(self, label='Tagasi', style=wx.BORDER_NONE)
       tagasibtn.Bind(wx.EVT_BUTTON, self.kinni)
       tagasibtn.SetBackgroundColour('#DCAB4F')
 
-      sizer.Add(tagasibtn)
+      msizer.Add(tagasibtn)
+      items.Add(self.paat('h', 'Tavaline laev'))
+      items.Add(self.paat('h', 'Tavaline laev', 'hit_'))
+      items.Add(self.paat('v', 'Tavaline laev'))
+      items.Add(self.paat('v', 'Tavaline laev', 'hit_'))
+      items.Add(self.item('Võida üks mäng','$100'))
+
+      sizer.Add(msizer)
+      sizer.AddStretchSpacer()
+      sizer.Add(items,7)
+      sizer.AddStretchSpacer()
       self.SetSizer(sizer)
+      self.Layout()
+      self.SetupScrolling(scroll_x=False)
    
    def kinni(self, event):
       self.Hide()
       self.parent.menu.Show()
       self.parent.Layout()
+
+   def paat(self, ori, pealkiri, hit=''):
+      sizer = wx.BoxSizer(wx.VERTICAL)
+      if ori == 'h':
+         sdir = wx.HORIZONTAL
+      else:
+         sdir = wx.VERTICAL
+      psizer = wx.BoxSizer(sdir)
+      pealkiri = ' ' + pealkiri + ' '
+      text = wx.StaticText(self, label=pealkiri)
+      text.SetForegroundColour('#5e97bf')
+      bot = f'paat_bot_{hit}{ori}.png'
+      mid = f'paat_mid_{hit}{ori}.png'
+      top = f'paat_top_{hit}{ori}.png'
+      paatbh = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(bot))
+      paatmh = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(mid))
+      paatth = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(top))
+      if ori == 'h':
+         psizer.AddMany([paatbh,paatmh,paatth])
+      else:
+         psizer.AddMany([paatth,paatmh,paatbh])
+      btn = wx.Button(self, label='$5', style=wx.BORDER_NONE)
+      btn.SetBackgroundColour('#DCAB4F')
+      sizer.AddMany([text,(psizer,0,wx.CENTER),(btn,0,wx.CENTER)])
+      return sizer
+   
+   def item(self, txt, hind):
+      sizer = wx.BoxSizer(wx.VERTICAL)
+      txt = ' ' + txt + ' '
+      text = wx.StaticText(self, label=txt)
+      text.SetForegroundColour('#5e97bf')
+      btn = wx.Button(self, label=hind, style=wx.BORDER_NONE)
+      btn.SetBackgroundColour('#DCAB4F')
+      btn.Bind(wx.EVT_BUTTON, self.OnBtn)
+      sizer.AddMany([text,(btn,0,wx.CENTER)])
+      return sizer
+   
+   def OnBtn(self, event):
+      obj = event.GetEventObject()
+      if obj.GetLabel() == '$100'and not self.popped:
+         self.popped = True
+         size = wx.DisplaySize()
+         tsize = int(size[1]*0.023)
+         f = wx.PopupWindow(self)
+         f.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+         t = wx.StaticText(f, label='Võitsid ühe mängu!!!')
+         size = t.GetBestSize()
+         f.SetSize((size.width+20,size.height+20))
+         f.Centre()
+         f.Show()
+         t.Bind(wx.EVT_LEFT_UP, self.closepop)
+         f.Bind(wx.EVT_LEFT_UP, self.closepop)
+   
+   def closepop(self, event):
+      obj = event.GetEventObject()
+      if isinstance(obj, wx._core.StaticText):
+         obj.GetParent().Destroy()
+      else:
+         obj.Destroy()
+      self.popped = False
 
 class infop(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
@@ -109,9 +222,9 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       tsize = int(size[1]*0.023)
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
       
-      sizer = wx.WrapSizer(wx.VERTICAL)
-      h1sizer = wx.WrapSizer()
-      h2sizer = wx.WrapSizer()
+      sizer = wx.BoxSizer(wx.VERTICAL)
+      hsizer = wx.BoxSizer()
+      lsizer = wx.BoxSizer()
       
       txt = "Mängu on loonud 1}{nd grupp: Mihkel, Richard, Taeri, Georg."
       tegijad = wx.StaticText(self, label=txt)
@@ -121,8 +234,7 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       tagasibtn.Bind(wx.EVT_BUTTON, self.kinni)
       tagasibtn.SetBackgroundColour('#DCAB4F')
 
-      loret = """*insert epically long heroic lore here*
-*insert epically long heroic lore here*
+      loret = """*insert epically long heroic lore here**insert epically long heroic lore here*
 *insert epically long heroic lore here**insert epically long heroic lore here*
 *insert epically long heroic lore here**insert epically long heroic lore here*
 *insert epically long heroic lore here**insert epically long heroic lore here*
@@ -136,16 +248,16 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       lore = wx.StaticText(self, label=loret)
       lore.SetForegroundColour('#5e97bf')
 
-      h1sizer.Add(tagasibtn)
-      h1sizer.AddStretchSpacer(1)
-      h1sizer.Add(tegijad,1,wx.CENTER)
-      h1sizer.AddStretchSpacer(1)
+      # hsizer.Add(tagasibtn, 0, wx.ALIGN_LEFT)
+      # h1sizer.AddStretchSpacer(1)
+      hsizer.Add(tegijad,1,wx.CENTER)
+      # h1sizer.AddStretchSpacer(1)
       # h2sizer.AddStretchSpacer()
-      h2sizer.Add(lore)
+      lsizer.Add(lore)
       # h2sizer.AddStretchSpacer(5)
-      sizer.Add(h1sizer,1)
-      sizer.AddStretchSpacer()
-      sizer.Add(h2sizer,4,wx.ALIGN_CENTER)
+      sizer.Add(hsizer, 1, wx.CENTER)
+      # sizer.AddStretchSpacer()
+      sizer.Add(lsizer, 4, wx.CENTER)
       self.SetSizer(sizer)
       self.SetupScrolling(scroll_x=False)
 
@@ -230,16 +342,23 @@ class m2ngulaud(wx.Panel):
       self.tulem = wx.StaticText(self)
       self.tulem.SetForegroundColour('#5e97bf')
       self.tulem.SetFont(wx.Font(int(tsize*2), wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+
+      txt = """  Käesolevat laeva
+  saab keerate rullikuga"""
+      rotinfo = wx.StaticText(self, label=txt)
+      rotinfo.SetForegroundColour('#5e97bf')
       
       self.vsizer.Add(tagasibtn,1,wx.EXPAND)
-      self.vsizer.Add(paath,10,wx.EXPAND)
+      self.vsizer.AddStretchSpacer()
+      self.vsizer.Add(rotinfo,2)
+      self.vsizer.Add(paath,10,wx.CENTER)
 
       self.grid = self.TeeLaud()
       self.laudSizer.Add(self.grid,7, wx.SHAPED)
       self.laudSizer.AddStretchSpacer()
       self.egrid = self.TeeLaud(True)
       self.laudSizer.Add(self.egrid, 7, wx.SHAPED)
-      self.sizer.Add(self.vsizer,1,wx.EXPAND)
+      self.sizer.Add(self.vsizer,0,wx.EXPAND)
       lpeal.Add(emeri,1,wx.EXPAND)
       lpeal.AddStretchSpacer(5)
       lpeal.Add(vmeri,1,wx.EXPAND)
@@ -249,7 +368,7 @@ class m2ngulaud(wx.Panel):
       lvsize.Add(self.laudSizer,1,wx.CENTER)
       lvsize.AddStretchSpacer()
       lvsize.Add(lall,2,wx.CENTER)
-      self.sizer.Add(lvsize, 5)
+      self.sizer.Add(lvsize, 1, wx.EXPAND)
       self.SetSizer(self.sizer)
       self.Layout()
 
@@ -334,15 +453,13 @@ class m2ngulaud(wx.Panel):
                               self.dragtile = list(self.laevad[laev].keys()).index(self.dragging)
                               if self.ori == 'v' and child+11*self.dragtile-11*(len(self.laevad[laev])-1) >= 12 and child+11*self.dragtile <= 120:
                                  tiles = []
-                                 print(self.dragtile)
                                  for i in range(len(self.laevad[laev])):
-                                    tile = child+11*i-11*(len(self.laevad[laev])-self.dragtile) # self.dragtile mingi muu
+                                    tile = child+11*self.dragtile-11*i
                                     tiles += [tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1]
                                  values = []
                                  for ship in self.laevad:
                                     if self.dragging not in ship:
                                        values += ship.values()
-                                 print(tiles, values)
                                  for check in tiles:
                                     if check in values:
                                        return
@@ -417,20 +534,21 @@ class m2ngulaud(wx.Panel):
                                  self.dragtile = list(self.laevad[laev].keys()).index(self.dragging)
                                  allowed = False
                                  if self.ori == 'v' and child+11*self.dragtile-11*(len(self.laevad[laev])-1) >= 12 and child+11*self.dragtile <= 120:
+                                    tiles = []
                                     for i in range(len(self.laevad[laev])):
-                                       tile = child+11*i-11*(len(self.laevad[laev])-1)
-                                       tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
-                                       values = []
-                                       for ship in self.laevad:
-                                          if self.dragging not in ship:
-                                             values += ship.values()
-                                       for check in tiles:
-                                          if check in values:
-                                             if self.ori == 'h':
-                                                self.ori = 'v'
-                                             else:
-                                                self.ori = 'h'
-                                             return
+                                       tile = child+11*self.dragtile-11*i
+                                       tiles += [tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1]
+                                    values = []
+                                    for ship in self.laevad:
+                                       if self.dragging not in ship:
+                                          values += ship.values()
+                                    for check in tiles:
+                                       if check in values:
+                                          if self.ori == 'h':
+                                             self.ori = 'v'
+                                          else:
+                                             self.ori = 'h'
+                                          return
                                     allowed = True
                                     if self.lastsnap:
                                        for i in self.lastsnap:
@@ -597,21 +715,16 @@ class m2ngulaud(wx.Panel):
       "Edastab ruudustikule tehtud kliki koordinaadid: [column, row]"
       btn =  event.GetEventObject()
       name = btn.name
-      if type(self.splaced) != int and len(name) == 2:
-         if (0, int(name[0])) not in self.usedcoord:
-            self.usedcoord.append((0, int(name[0])))
-            lask = playerLasi(0, int(name[0]))
-            print([0, int(name[0])])
-         else:
-            return
+      if type(self.splaced) != int and len(name) == 2 and (0, int(name[0])) not in self.usedcoord:
+         self.usedcoord.append((0, int(name[0])))
+         lask = playerLasi(0, int(name[0]))
       elif type(self.splaced) != int and (int(name[0]), int(name[1])) not in self.usedcoord:
+         print('lasi ?')
          self.usedcoord.append((int(name[0]), int(name[1])))
          lask = playerLasi(int(name[0]), int(name[1]))
-         print([int(name[0]), int(name[1])])
       else:
          return
-      
-      # lask = 1
+
       if lask == 0:
          btn.SetBitmap(self.sulpsti)
       elif lask in range(1,6):
@@ -887,7 +1000,7 @@ class MainFrame(wx.Frame):
       self.SetSizer(self.paneelisizer)
 
    def OnSize(self, event):
-      if self.infopan.IsShown():
+      if self.infopan.IsShown() or self.cashshop.IsShown() or self.story.IsShown():
          size = self.infopan.GetSize()
          vsize = self.infopan.GetVirtualSize()
          self.infopan.SetVirtualSize((size[0],vsize[1]))
@@ -1208,12 +1321,13 @@ def fillrow(rida, start, end):
 
 def playerLasi(x, y):
     cords = [x, y]                          # Lasu koordinaadid listina, nagu on ka sõnastiksu
+    print('jooksis')
     for i in placedLaevad.keys():           # Iterate läbi iga meie laual oleva laeva
         if i == 3.1:                        # Suurus 3 kahte paati eristatud nii, et üks neist on 3.1
             laevaSuurus = 3                 # Laevasuurus siiski 3, isegi, kui tähistatud 3.1
         else:
             laevaSuurus = i                 # Teisi laeva suurusi 1, seega saame otsu suuruse võtta keyst
-        
+        print('ai laevad', placedLaevad)
         if cords in placedLaevad[i]:        # Kui lasu kordinaat on sama mingi meie paadiosaga
             oldMap = placedLaevad[i]        # Vanad selle laeva allesolevate tükkkide cordid
             oldMap.pop(oldMap.index(cords)) # Võta olemasolevate tükkide cordidest ära pihta saanu
