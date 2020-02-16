@@ -10,6 +10,7 @@ import wx.lib.mixins.inspection
 
 
 laevad = [5,4,3,3,2]
+laevad2 = [5,4,3,3,2]
 placedLaevad = {}
 
 playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
@@ -1150,7 +1151,7 @@ def placeLaev():            # Proovib paigutada laeva
                     placed = True
                 elif valik == "alla":
                     for i in range(laev):
-                        placedCords.append([x+1, y+i])
+                        placedCords.append([x, y+i])
                         matrix[y+i][x] = 1
 
                     updateLaevadeSõnastik(laev, placedCords)
@@ -1180,7 +1181,6 @@ def aiLask(self): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, o
         print("destroy")
     else:
         koordinaadid = seek()
-        print("seek")
 
     vastus = self.aiLasi(koordinaadid)
     print(f"coords: {koordinaadid}")
@@ -1194,7 +1194,7 @@ def aiLask(self): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, o
         hitCoords.append([koordinaadid[1], koordinaadid[0]]) #transponeerin koordinaadid, et need vastaksid array indeksitele 
     elif vastus > 1 and vastus <6:
         print(f"SINK {vastus}")
-        laevad.remove(vastus)
+        laevad2.remove(vastus)
         hitCoords.append([koordinaadid[1], koordinaadid[0]]) #transponeerin koordinaadid, et need vastaksid array indeksitele
         sinkship()
         print("sinkship called")
@@ -1220,6 +1220,7 @@ def sinkship():
     hitCoords.clear()
 
 def leiaNaabrid(coords): #On natuke valmis
+
     #üleval
     ruum = coords[1]-4 #trust me
     if ruum > 0:
@@ -1265,9 +1266,20 @@ def leiaNaabrid(coords): #On natuke valmis
                 if j >= i + 1:
                     outputmatrix[coords[1]][coords[0] + i] += 1
         elif playermatrix[coords[1] - i][coords[0]] != 0:
-            break
+            break 
+"""     if ishorizontal == 0: #esimene hit
+        if coords[1] > 0 and playermatrix[coords[1]-1][coords[0]] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] < 9 and playermatrix[coords[1]+1][coords[0]] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] > 0 and playermatrix[coords[1]][coords[0]-1] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] < 9 and playermatrix[coords[1]][coords[0]+1] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1 """
+
 
 def seek():
+    print("seek jookseb")
     global playermatrix
     global outputmatrix
 
@@ -1284,9 +1296,28 @@ def seek():
         vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
     return vastus
 
+ishorizontal = 0
 def destroy(): #laseb põhja juba leitud laevu
     global hitCoords
     global outputmatrix
+    global ishorizontal
+    global playermatrix
+    if len(hitCoords) >= 4:
+        print("VIIENE!!!")
+        if hitCoords[0][1] == hitCoords[1][1]: #laev on horisontaalne
+            print("appi")
+            if hitCoords[3][0] < 9 and playermatrix[hitCoords[3][1]][hitCoords[0][0]+1] == 0:
+                return (hitCoords[3][1], hitCoords[3][0]-1)
+            elif playermatrix[hitCoords[3][1]][hitCoords[0][0]-4] == 0:
+                return (hitCoords[3][1], hitCoords[3][0]+4)
+
+        else: #laev on püsti
+            print("püsti")
+            if hitCoords[3][1] < 10 and playermatrix[hitCoords[3][1]+1][hitCoords[0][0]] == 0:
+                print((hitCoords[3][0], hitCoords[3][1]+1))
+                return (hitCoords[3][1]-1, hitCoords[3][0])
+
+
     for i in hitCoords:
         leiaNaabrid(i)
     suurim = outputmatrix.argmax()
@@ -1297,6 +1328,7 @@ def destroy(): #laseb põhja juba leitud laevu
     return vastus
 
 def findHoles(matrix):
+    print("finding holes")
     for reacounter in range(10):
         rida=matrix[reacounter]
         tyhi = (rida[0]==0)
@@ -1312,29 +1344,33 @@ def findHoles(matrix):
                 if rida[i]==0:
                     tyhjaalgus=i
                     tyhi=True
+    
 
 def fillrow(rida, start, end):
+    global outputmatrix
+    print("filled row")
     pikkus = end - start
     for i in range(pikkus):
         lisa = 0
         for l in [2,3,4,5]:
-            if l in laevad and l<=pikkus:
-                #print(f"Küsin elementi {pikkus-2}, {l-2}, {i}")
+            print("got this far")
+            if l in laevad2 and l<=pikkus:
+                print("got further")
+                print(f"Küsin elementi {pikkus-2}, {l-2}, {i}")
                 lisa += probtable[pikkus-2][l-2][i]
         outputmatrix[rida][start+i] += lisa
+        print("lisasin rea")
 
 
 ##### Handle opponents shot ---------------------------------------------------------------
 
 def playerLasi(x, y):
-    cords = [x, y]                          # Lasu koordinaadid listina, nagu on ka sõnastiksu
-    print('jooksis')
+    cords = [y, x]                          # Lasu koordinaadid listina, nagu on ka sõnastiksu
     for i in placedLaevad.keys():           # Iterate läbi iga meie laual oleva laeva
         if i == 3.1:                        # Suurus 3 kahte paati eristatud nii, et üks neist on 3.1
             laevaSuurus = 3                 # Laevasuurus siiski 3, isegi, kui tähistatud 3.1
         else:
             laevaSuurus = i                 # Teisi laeva suurusi 1, seega saame otsu suuruse võtta keyst
-        print('ai laevad', placedLaevad)
         if cords in placedLaevad[i]:        # Kui lasu kordinaat on sama mingi meie paadiosaga
             oldMap = placedLaevad[i]        # Vanad selle laeva allesolevate tükkkide cordid
             oldMap.pop(oldMap.index(cords)) # Võta olemasolevate tükkide cordidest ära pihta saanu
@@ -1350,4 +1386,5 @@ def playerLasi(x, y):
                 return 1                    # Ütle, et saadi pihta
     return 0                                # Kui kuskile pihta ei saadud, vasta vastavalt
 
+paigutaLaevad()
 gui = app()
