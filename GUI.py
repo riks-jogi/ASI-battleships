@@ -668,6 +668,21 @@ class m2ngulaud(wx.Panel):
       self.sinked = 0
       self.hits = [[] for x in range(5)]
       self.usedcoord = []
+      self.lasud = []
+
+      global resetOutput
+      global resetPlayermatrix
+      global laevad
+      global laevad2
+      global hitCoords
+      global placedLaevad
+
+      placedLaevad = {}
+      hitCoords = []
+      laevad = [5,4,3,3,2]
+      laevad2 = [5,4,3,3,2]
+      resetPlayermatrix()
+      resetOutput()
 
    def TeeLaud(self, AI=False):
       "Mängu ruudustik tegemine"
@@ -1052,6 +1067,35 @@ def resetOutput(): #taastab tõenäosustabeli algse seisu
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0]])
 
+def resetPlayermatrix():
+   global playermatrix
+   global matrix
+
+   playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [2,2,2,2,2,2,2,2,2,2,2]])
+
+   matrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [2,2,2,2,2,2,2,2,2,2,2]])
+   paigutaLaevad()
+
 
 ##### AI Placing functions ---------------------------------------------------------------
 
@@ -1305,18 +1349,21 @@ def destroy(): #laseb põhja juba leitud laevu
     if len(hitCoords) >= 4:
         print("VIIENE!!!")
         if hitCoords[0][1] == hitCoords[1][1]: #laev on horisontaalne
-            print("appi")
-            if hitCoords[3][0] < 9 and playermatrix[hitCoords[3][1]][hitCoords[0][0]+1] == 0:
-                return (hitCoords[3][1], hitCoords[3][0]-1)
-            elif playermatrix[hitCoords[3][1]][hitCoords[0][0]-4] == 0:
-                return (hitCoords[3][1], hitCoords[3][0]+4)
+            if hitCoords[3][0] < 10 and [hitCoords[3][0]-1,hitCoords[3][1]] not in hitCoords and playermatrix[hitCoords[3][1]][hitCoords[3][0]-1] == 0:
+               print([[hitCoords[3][0]-1],[hitCoords[3][1]]])
+               return (hitCoords[3][1], hitCoords[3][0]-1)
+            else:
+               print("lasen alla")
+               return (hitCoords[3][1], hitCoords[3][0]+1)
 
         else: #laev on püsti
             print("püsti")
-            if hitCoords[3][1] < 10 and playermatrix[hitCoords[3][1]+1][hitCoords[0][0]] == 0:
-                print((hitCoords[3][0], hitCoords[3][1]+1))
-                return (hitCoords[3][1]-1, hitCoords[3][0])
-
+            if hitCoords[3][1] < 10 and [hitCoords[3][0],hitCoords[3][1]-1] not in hitCoords and playermatrix[hitCoords[3][1]-1][hitCoords[3][0]] == 0:
+               print([[hitCoords[3][0]],[hitCoords[3][1]-1]])
+               return (hitCoords[3][1]-1, hitCoords[3][0])
+            else:
+               print("lasen alla")
+               return (hitCoords[3][1]+1, hitCoords[3][0])
 
     for i in hitCoords:
         leiaNaabrid(i)
