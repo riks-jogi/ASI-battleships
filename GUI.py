@@ -138,6 +138,9 @@ class shop(wx.lib.scrolledpanel.ScrolledPanel):
       items.Add(self.paat('h', 'Tavaline laev', 'hit_'))
       items.Add(self.paat('v', 'Tavaline laev'))
       items.Add(self.paat('v', 'Tavaline laev', 'hit_'))
+      items.Add(self.item('Lasid mööda','$0','sulpsti.png'))
+      items.Add(self.item('Lasid pihta','$0','meri1_hit.png'))
+      items.Add(self.item('Avastamata meri','$0','meri1.png'))
       items.Add(self.item('Võida üks mäng','$100'))
 
       sizer.Add(msizer)
@@ -173,12 +176,12 @@ class shop(wx.lib.scrolledpanel.ScrolledPanel):
          psizer.AddMany([paatbh,paatmh,paatth])
       else:
          psizer.AddMany([paatth,paatmh,paatbh])
-      btn = wx.Button(self, label='$5', style=wx.BORDER_NONE)
+      btn = wx.Button(self, label='$0', style=wx.BORDER_NONE)
       btn.SetBackgroundColour('#DCAB4F')
       sizer.AddMany([text,(psizer,0,wx.CENTER),(btn,0,wx.CENTER)])
       return sizer
    
-   def item(self, txt, hind):
+   def item(self, txt, hind, img=''):
       sizer = wx.BoxSizer(wx.VERTICAL)
       txt = ' ' + txt + ' '
       text = wx.StaticText(self, label=txt)
@@ -186,7 +189,11 @@ class shop(wx.lib.scrolledpanel.ScrolledPanel):
       btn = wx.Button(self, label=hind, style=wx.BORDER_NONE)
       btn.SetBackgroundColour('#DCAB4F')
       btn.Bind(wx.EVT_BUTTON, self.OnBtn)
-      sizer.AddMany([text,(btn,0,wx.CENTER)])
+      if img != '':
+         bmp = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(img))
+         sizer.AddMany([text,(bmp,0,wx.CENTER),(btn,0,wx.CENTER)])
+      else:
+         sizer.AddMany([text,(btn,0,wx.CENTER)])
       return sizer
    
    def OnBtn(self, event):
@@ -480,7 +487,7 @@ class m2ngulaud(wx.Panel):
                                     if none in range(child-self.dragtile, child-self.dragtile+len(self.laevad[laev])):
                                        return
                                  for i in range(len(self.laevad[laev])):
-                                    tile = child-i+len(self.laevad[laev])-1
+                                    tile = child-self.dragtile+i
                                     tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
                                     values = []
                                     for ship in self.laevad:
@@ -570,7 +577,7 @@ class m2ngulaud(wx.Panel):
                                              self.ori = 'h'
                                           return
                                     for i in range(len(self.laevad[laev])):
-                                       tile = child-i+len(self.laevad[laev])-1
+                                       tile = child-self.dragtile+i
                                        tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
                                        values = []
                                        for ship in self.laevad:
