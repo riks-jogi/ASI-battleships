@@ -668,7 +668,7 @@ class m2ngulaud(wx.Panel):
       self.sinked = 0
       self.hits = [[] for x in range(5)]
       self.usedcoord = []
-      self.lasud = []
+      self.tulem.SetLabel("")
 
       global resetOutput
       global resetPlayermatrix
@@ -683,6 +683,10 @@ class m2ngulaud(wx.Panel):
       laevad2 = [5,4,3,3,2]
       resetPlayermatrix()
       resetOutput()
+
+      for laev in self.lasud:
+          for osa in laev:
+             laev[osa] = False
 
    def TeeLaud(self, AI=False):
       "Mängu ruudustik tegemine"
