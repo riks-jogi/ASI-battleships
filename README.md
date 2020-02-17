@@ -1,5 +1,7 @@
 # ASI-battleships
 
+##### team: Georg Karu, Mihkel Martin Kasterpalu, Taeri Saar, Richard Jõgi
+
 A battleships game, played by a player and "AI" 
 Due to this being made for a competition, there are many placeholders and errors:
 - Name and difficulty selection don't do anything
