@@ -1,12 +1,12 @@
 # ASI-battleships
 
 A battleships game, played by a player and "AI" 
-Due to this being made for a competition, there are many placeholders and errors.
--Name and difficulty selection don't do anything
--Store is pratically non functional
--WXPython, the library used for UI in this project is really glitchy on Linux
-  -Rotating ships doesn't work
-  -Layout/Font/Sizing bugs
+Due to this being made for a competition, there are many placeholders and errors:
+- Name and difficulty selection don't do anything
+- Store is pratically non functional
+- WXPython, the library used for UI in this project is really glitchy on Linux
+  - Rotating ships doesn't work
+  - Layout/Font/Sizing bugs
 
 Python 3.6+
 
