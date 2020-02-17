@@ -6,7 +6,6 @@ from probabilityTable import  probtable
 import random
 import numpy as np
 import wx, wx.lib.scrolledpanel
-import wx.lib.mixins.inspection
 
 
 laevad = [5,4,3,3,2]
@@ -1051,7 +1050,6 @@ class app(wx.App):
       style = wx.DEFAULT_FRAME_STYLE ^ wx.MAXIMIZE
       size = wx.DisplaySize()
       self.MF = MainFrame(None, title='Laevade pommitamine', style=style, size=size)
-      wx.lib.inspection.InspectionTool().Show()
       self.MainLoop()
 
 
