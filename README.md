@@ -1,6 +1,10 @@
 # ASI-battleships
 
 ##### team: Georg Karu, Mihkel Martin Kasterpalu, Taeri Saar, Richard Jõgi
+__IF YOU ENJOY WELL WRITTEN, CLEAR CODE TURN AWAY NOW!__
+
+
+__THIS COMPLETELY VIOLATES PEP8 AND ANY OTHER STYLE STANDARD INCLUDING COMMON SENSE__
 
 A battleships game, played by a player and "AI" 
 Due to this being made for a competition, there are many placeholders and errors:
