@@ -1,7 +1,3 @@
-#tabel, mis aitab kiirendada kõikide laevade võimalike positsioonide välja arvutamist.
-#Programm leiab laual tühjad kohad ja siis võtab tabelist vastavad väärtused.
-#Arvutus tehakse läbi kaks korda. Kord x-teljel ja siis y-teljel. Tulemused liidetakse
-
 probtable= [
 #2        
         [

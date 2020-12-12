@@ -6,10 +6,10 @@ from probabilityTable import  probtable
 import random
 import numpy as np
 import wx, wx.lib.scrolledpanel
-import wx.lib.mixins.inspection
 
 
 laevad = [5,4,3,3,2]
+laevad2 = [5,4,3,3,2]
 placedLaevad = {}
 
 playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
@@ -47,7 +47,7 @@ outputmatrix = np.array([[0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0]])
 
-class storypan(wx.Panel):
+class storypan(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.parent = args[0]
@@ -57,48 +57,168 @@ class storypan(wx.Panel):
       
 
       sizer = wx.BoxSizer()
+      msizer = wx.BoxSizer(wx.VERTICAL)
+      storysiz = wx.BoxSizer(wx.VERTICAL)
+
+      self.btns = ['Järele neile', 'Rünnakule', 'Andke neile','Rindesse','Kallale neile']
       
-      text = """
+      chapter1 = """
       Kurjad sead on ühe paganama kiire korvetti sokutanud teie tagalasse moosi varastama.
       Me ei saa neil põgeneda lasta, kähku moosivarusid päästma!!!
       """
+
+      chapter2="""
+      Admiral:"Nomaitea, võiks natse ründama minna."
+      Ole üle admirali saamatusest ning mine võida üks lahing.
+      """
+      
+      storysiz.Add(self.chapter(chapter1))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      storysiz.Add(self.chapter(chapter2))
+      
+      btn = wx.Button(self, label='Tagasi', style=wx.BORDER_NONE)
+      btn.Bind(wx.EVT_BUTTON, self.kinni)
+      btn.SetBackgroundColour('#DCAB4F')
+
+      msizer.Add(btn)
+      sizer.Add(msizer)
+      sizer.Add(storysiz)
+      self.SetSizer(sizer)
+      self.SetupScrolling(scroll_x=False)
+
+   def chapter(self, text):
+      sizer = wx.BoxSizer()
       txt = wx.StaticText(self, label=text)
       txt.SetForegroundColour('#5e97bf')
-      
-      m2ngibtn = wx.Button(self, label='Järele neile!', style=wx.BORDER_NONE)
+      m2ngibtn = wx.Button(self, label=self.btns[randint(0,len(self.btns))-1], style=wx.BORDER_NONE)
       m2ngibtn.Bind(wx.EVT_BUTTON, self.m2ngi)
       m2ngibtn.SetBackgroundColour('#DCAB4F')
-      
-      sizer.Add(m2ngibtn,0,wx.LEFT)
       sizer.Add(txt)
-      self.SetSizer(sizer)
+      sizer.AddStretchSpacer()
+      sizer.Add(m2ngibtn,1,wx.CENTER)
+      sizer.AddStretchSpacer()
+      return sizer
 
    def m2ngi(self, event):
       self.Hide()
       self.parent.laud.Show()
       self.parent.Layout()
+   
+   def kinni(self, event):
+      self.Hide()
+      self.parent.menu.Show()
+      self.parent.Layout()
 
-class shop(wx.Panel):
+class shop(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
       super().__init__(*args, **kwargs)
       self.parent = args[0]
       size = wx.DisplaySize()
       tsize = int(size[1]*0.023)
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+      self.popped = False
 
       sizer = wx.BoxSizer()
-      
+      msizer = wx.BoxSizer(wx.VERTICAL)
+      items = wx.WrapSizer()
+
       tagasibtn = wx.Button(self, label='Tagasi', style=wx.BORDER_NONE)
       tagasibtn.Bind(wx.EVT_BUTTON, self.kinni)
       tagasibtn.SetBackgroundColour('#DCAB4F')
 
-      sizer.Add(tagasibtn)
+      msizer.Add(tagasibtn)
+      items.Add(self.paat('h', 'Tavaline laev'))
+      items.Add(self.paat('h', 'Tavaline laev', 'hit_'))
+      items.Add(self.paat('v', 'Tavaline laev'))
+      items.Add(self.paat('v', 'Tavaline laev', 'hit_'))
+      items.Add(self.item('Lasid mööda','$0','sulpsti.png'))
+      items.Add(self.item('Lasid pihta','$0','meri1_hit.png'))
+      items.Add(self.item('Avastamata meri','$0','meri1.png'))
+      items.Add(self.item('Võida üks mäng','$100'))
+
+      sizer.Add(msizer)
+      sizer.AddStretchSpacer()
+      sizer.Add(items,7)
+      sizer.AddStretchSpacer()
       self.SetSizer(sizer)
+      self.Layout()
+      self.SetupScrolling(scroll_x=False)
    
    def kinni(self, event):
       self.Hide()
       self.parent.menu.Show()
       self.parent.Layout()
+
+   def paat(self, ori, pealkiri, hit=''):
+      sizer = wx.BoxSizer(wx.VERTICAL)
+      if ori == 'h':
+         sdir = wx.HORIZONTAL
+      else:
+         sdir = wx.VERTICAL
+      psizer = wx.BoxSizer(sdir)
+      pealkiri = ' ' + pealkiri + ' '
+      text = wx.StaticText(self, label=pealkiri)
+      text.SetForegroundColour('#5e97bf')
+      bot = f'paat_bot_{hit}{ori}.png'
+      mid = f'paat_mid_{hit}{ori}.png'
+      top = f'paat_top_{hit}{ori}.png'
+      paatbh = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(bot))
+      paatmh = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(mid))
+      paatth = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(top))
+      if ori == 'h':
+         psizer.AddMany([paatbh,paatmh,paatth])
+      else:
+         psizer.AddMany([paatth,paatmh,paatbh])
+      btn = wx.Button(self, label='$0', style=wx.BORDER_NONE)
+      btn.SetBackgroundColour('#DCAB4F')
+      sizer.AddMany([text,(psizer,0,wx.CENTER),(btn,0,wx.CENTER)])
+      return sizer
+   
+   def item(self, txt, hind, img=''):
+      sizer = wx.BoxSizer(wx.VERTICAL)
+      txt = ' ' + txt + ' '
+      text = wx.StaticText(self, label=txt)
+      text.SetForegroundColour('#5e97bf')
+      btn = wx.Button(self, label=hind, style=wx.BORDER_NONE)
+      btn.SetBackgroundColour('#DCAB4F')
+      btn.Bind(wx.EVT_BUTTON, self.OnBtn)
+      if img != '':
+         bmp = wx.StaticBitmap(self, bitmap=self.parent.laud.loadbmp(img))
+         sizer.AddMany([text,(bmp,0,wx.CENTER),(btn,0,wx.CENTER)])
+      else:
+         sizer.AddMany([text,(btn,0,wx.CENTER)])
+      return sizer
+   
+   def OnBtn(self, event):
+      obj = event.GetEventObject()
+      if obj.GetLabel() == '$100'and not self.popped:
+         self.popped = True
+         size = wx.DisplaySize()
+         tsize = int(size[1]*0.023)
+         f = wx.PopupWindow(self)
+         f.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+         t = wx.StaticText(f, label='Võitsid ühe mängu!!!')
+         size = t.GetBestSize()
+         f.SetSize((size.width+20,size.height+20))
+         f.Centre()
+         f.Show()
+         t.Bind(wx.EVT_LEFT_UP, self.closepop)
+         f.Bind(wx.EVT_LEFT_UP, self.closepop)
+   
+   def closepop(self, event):
+      obj = event.GetEventObject()
+      if isinstance(obj, wx._core.StaticText):
+         obj.GetParent().Destroy()
+      else:
+         obj.Destroy()
+      self.popped = False
 
 class infop(wx.lib.scrolledpanel.ScrolledPanel):
    def __init__(self, *args, **kwargs):
@@ -110,8 +230,8 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       self.SetFont(wx.Font(tsize, wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
       
       sizer = wx.BoxSizer(wx.VERTICAL)
-      h1sizer = wx.BoxSizer()
-      h2sizer = wx.BoxSizer()
+      hsizer = wx.BoxSizer()
+      lsizer = wx.BoxSizer()
       
       txt = "Mängu on loonud 1}{nd grupp: Mihkel, Richard, Taeri, Georg."
       tegijad = wx.StaticText(self, label=txt)
@@ -121,34 +241,31 @@ class infop(wx.lib.scrolledpanel.ScrolledPanel):
       tagasibtn.Bind(wx.EVT_BUTTON, self.kinni)
       tagasibtn.SetBackgroundColour('#DCAB4F')
 
-      loret = """*insert epically long heroic lore here*
-      *insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*
-      *insert epically long heroic lore here**insert epically long heroic lore here*"""
+      loret = """*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*
+*insert epically long heroic lore here**insert epically long heroic lore here*"""
       lore = wx.StaticText(self, label=loret)
       lore.SetForegroundColour('#5e97bf')
 
-      h1sizer.Add(tagasibtn)
-      h1sizer.AddStretchSpacer(1)
-      h1sizer.Add(tegijad,1,wx.CENTER)
-      h1sizer.AddStretchSpacer(1)
+      # hsizer.Add(tagasibtn, 0, wx.ALIGN_LEFT)
+      # h1sizer.AddStretchSpacer(1)
+      hsizer.Add(tegijad,1,wx.CENTER)
+      # h1sizer.AddStretchSpacer(1)
       # h2sizer.AddStretchSpacer()
-      h2sizer.Add(lore)
+      lsizer.Add(lore)
       # h2sizer.AddStretchSpacer(5)
-      sizer.Add(h1sizer,1)
-      sizer.AddStretchSpacer()
-      sizer.Add(h2sizer,4,wx.ALIGN_CENTER)
+      sizer.Add(hsizer, 1, wx.CENTER)
+      # sizer.AddStretchSpacer()
+      sizer.Add(lsizer, 4, wx.CENTER)
       self.SetSizer(sizer)
-      self.parent.Unbind(wx.EVT_SIZE)
-      self.parent.Unbind(wx.EVT_IDLE)
       self.SetupScrolling(scroll_x=False)
 
    def kinni(self, event):
@@ -232,16 +349,23 @@ class m2ngulaud(wx.Panel):
       self.tulem = wx.StaticText(self)
       self.tulem.SetForegroundColour('#5e97bf')
       self.tulem.SetFont(wx.Font(int(tsize*2), wx.DECORATIVE,wx.NORMAL,wx.NORMAL))
+
+      txt = """  Käesolevat laeva
+  saab keerate rullikuga"""
+      rotinfo = wx.StaticText(self, label=txt)
+      rotinfo.SetForegroundColour('#5e97bf')
       
       self.vsizer.Add(tagasibtn,1,wx.EXPAND)
-      self.vsizer.Add(paath,10,wx.EXPAND)
+      self.vsizer.AddStretchSpacer()
+      self.vsizer.Add(rotinfo,2)
+      self.vsizer.Add(paath,10,wx.CENTER)
 
       self.grid = self.TeeLaud()
       self.laudSizer.Add(self.grid,7, wx.SHAPED)
       self.laudSizer.AddStretchSpacer()
       self.egrid = self.TeeLaud(True)
       self.laudSizer.Add(self.egrid, 7, wx.SHAPED)
-      self.sizer.Add(self.vsizer,1,wx.EXPAND)
+      self.sizer.Add(self.vsizer,0,wx.EXPAND)
       lpeal.Add(emeri,1,wx.EXPAND)
       lpeal.AddStretchSpacer(5)
       lpeal.Add(vmeri,1,wx.EXPAND)
@@ -251,7 +375,7 @@ class m2ngulaud(wx.Panel):
       lvsize.Add(self.laudSizer,1,wx.CENTER)
       lvsize.AddStretchSpacer()
       lvsize.Add(lall,2,wx.CENTER)
-      self.sizer.Add(lvsize, 5)
+      self.sizer.Add(lvsize, 1, wx.EXPAND)
       self.SetSizer(self.sizer)
       self.Layout()
 
@@ -335,16 +459,17 @@ class m2ngulaud(wx.Panel):
                            if self.dragging in self.laevad[laev]:
                               self.dragtile = list(self.laevad[laev].keys()).index(self.dragging)
                               if self.ori == 'v' and child+11*self.dragtile-11*(len(self.laevad[laev])-1) >= 12 and child+11*self.dragtile <= 120:
+                                 tiles = []
                                  for i in range(len(self.laevad[laev])):
-                                    tile = child+11*i-11*(len(self.laevad[laev])-1)
-                                    tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
-                                    values = []
-                                    for ship in self.laevad:
-                                       if self.dragging not in ship:
-                                          values += ship.values()
-                                    for check in tiles:
-                                       if check in values:
-                                          return
+                                    tile = child+11*self.dragtile-11*i
+                                    tiles += [tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1]
+                                 values = []
+                                 for ship in self.laevad:
+                                    if self.dragging not in ship:
+                                       values += ship.values()
+                                 for check in tiles:
+                                    if check in values:
+                                       return
                                  self.dragging.dragbmp.Hide()
                                  if self.lastsnap:
                                     for i in self.lastsnap:
@@ -362,7 +487,7 @@ class m2ngulaud(wx.Panel):
                                     if none in range(child-self.dragtile, child-self.dragtile+len(self.laevad[laev])):
                                        return
                                  for i in range(len(self.laevad[laev])):
-                                    tile = child-i+len(self.laevad[laev])-1
+                                    tile = child-self.dragtile+i
                                     tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
                                     values = []
                                     for ship in self.laevad:
@@ -416,20 +541,21 @@ class m2ngulaud(wx.Panel):
                                  self.dragtile = list(self.laevad[laev].keys()).index(self.dragging)
                                  allowed = False
                                  if self.ori == 'v' and child+11*self.dragtile-11*(len(self.laevad[laev])-1) >= 12 and child+11*self.dragtile <= 120:
+                                    tiles = []
                                     for i in range(len(self.laevad[laev])):
-                                       tile = child+11*i-11*(len(self.laevad[laev])-1)
-                                       tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
-                                       values = []
-                                       for ship in self.laevad:
-                                          if self.dragging not in ship:
-                                             values += ship.values()
-                                       for check in tiles:
-                                          if check in values:
-                                             if self.ori == 'h':
-                                                self.ori = 'v'
-                                             else:
-                                                self.ori = 'h'
-                                             return
+                                       tile = child+11*self.dragtile-11*i
+                                       tiles += [tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1]
+                                    values = []
+                                    for ship in self.laevad:
+                                       if self.dragging not in ship:
+                                          values += ship.values()
+                                    for check in tiles:
+                                       if check in values:
+                                          if self.ori == 'h':
+                                             self.ori = 'v'
+                                          else:
+                                             self.ori = 'h'
+                                          return
                                     allowed = True
                                     if self.lastsnap:
                                        for i in self.lastsnap:
@@ -451,7 +577,7 @@ class m2ngulaud(wx.Panel):
                                              self.ori = 'h'
                                           return
                                     for i in range(len(self.laevad[laev])):
-                                       tile = child-i+len(self.laevad[laev])-1
+                                       tile = child-self.dragtile+i
                                        tiles = (tile+1, tile-1, tile+11, tile+11+1, tile+11-1, tile-11, tile-11+1, tile-11-1)
                                        values = []
                                        for ship in self.laevad:
@@ -541,6 +667,25 @@ class m2ngulaud(wx.Panel):
       self.sinked = 0
       self.hits = [[] for x in range(5)]
       self.usedcoord = []
+      self.tulem.SetLabel("")
+
+      global resetOutput
+      global resetPlayermatrix
+      global laevad
+      global laevad2
+      global hitCoords
+      global placedLaevad
+
+      placedLaevad = {}
+      hitCoords = []
+      laevad = [5,4,3,3,2]
+      laevad2 = [5,4,3,3,2]
+      resetPlayermatrix()
+      resetOutput()
+
+      for laev in self.lasud:
+          for osa in laev:
+             laev[osa] = False
 
    def TeeLaud(self, AI=False):
       "Mängu ruudustik tegemine"
@@ -596,19 +741,16 @@ class m2ngulaud(wx.Panel):
       "Edastab ruudustikule tehtud kliki koordinaadid: [column, row]"
       btn =  event.GetEventObject()
       name = btn.name
-      if type(self.splaced) != int and len(name) == 2:
-         if (0, int(name[0])) not in self.usedcoord:
-            self.usedcoord.append((0, int(name[0])))
-            lask = playerLasi(0, int(name[0]))
-            print([0, int(name[0])])
-         else:
-            return
+      if type(self.splaced) != int and len(name) == 2 and (0, int(name[0])) not in self.usedcoord:
+         self.usedcoord.append((0, int(name[0])))
+         lask = playerLasi(0, int(name[0]))
       elif type(self.splaced) != int and (int(name[0]), int(name[1])) not in self.usedcoord:
+         print('lasi ?')
          self.usedcoord.append((int(name[0]), int(name[1])))
          lask = playerLasi(int(name[0]), int(name[1]))
-         print([int(name[0]), int(name[1])])
       else:
          return
+
       if lask == 0:
          btn.SetBitmap(self.sulpsti)
       elif lask in range(1,6):
@@ -645,7 +787,6 @@ class m2ngulaud(wx.Panel):
                            if osa == children[child].GetWindow():
                               jrj.append(child)
                      jrj.sort()
-                     print(jrj)
                      if jrj[0]+1 == jrj[1] and len(jrj) == lask:
                         self.hits.remove(laev)
                         children[jrj[0]].GetWindow().SetBitmap(self.paat_bot_hit_h)
@@ -681,16 +822,14 @@ class m2ngulaud(wx.Panel):
       aiLask(self)
 
    def aiLasi(self,ailask):
+      print(ailask)
       lask = 12 + 11 * ailask[0] + ailask[1]
       for laev in range(len(self.laevad)):
          leidis = False
-         print(len((self.laevad[laev])))
          for osa in range(len((self.laevad[laev]))):
             keys = list(self.laevad[laev].keys())
             osaa = keys[osa]
-            print(osaa)
             if lask == self.laevad[laev][osaa]:
-               print('sai edasi')
                osad = list(self.laevad[laev].values())
                osad.sort()
                leidis = True
@@ -827,24 +966,22 @@ class MainMenu(wx.Panel):
          self.nimi = False
       else:
          self.nimi = obj.GetValue()
-      return print(self.nimi)
+      return
    
    def raskus(self, event):
       "annab rasustaseme str()'ina"
       obj = event.GetEventObject()
       if obj.GetValue() != 'Raskustase':
          self.tase = obj.GetValue()
-      return print(self.tase)
+      return
 
    def m2ngi(self, event):
-      print(self.tase, self.nimi)
       if self.tase and self.nimi or True:
          self.Hide()
          self.parent.laud.Show()
          self.parent.Layout()
    
    def story(self, event):
-      print(self.tase, self.nimi)
       if self.tase and self.nimi or True:
          self.Hide()
          self.parent.story.Show()
@@ -889,14 +1026,16 @@ class MainFrame(wx.Frame):
       self.SetSizer(self.paneelisizer)
 
    def OnSize(self, event):
-      if self.infopan.IsShown():
-         # print('jooksis')
-         size = self.GetSize()
-         vsize = self.GetVirtualSize()
-         self.SetVirtualSize((size[0],vsize[1]))
-      else:
+      if self.infopan.IsShown() or self.cashshop.IsShown() or self.story.IsShown():
+         size = self.infopan.GetSize()
+         vsize = self.infopan.GetVirtualSize()
+         self.infopan.SetVirtualSize((size[0],vsize[1]))
+         event.Skip()
+      elif self.laud.IsShown():
          self.resizing = True
          self.laud.snaparea = False
+      else:
+         event.Skip()
 
    def OnIdle(self, event):
       if self.resizing:
@@ -911,7 +1050,6 @@ class app(wx.App):
       style = wx.DEFAULT_FRAME_STYLE ^ wx.MAXIMIZE
       size = wx.DisplaySize()
       self.MF = MainFrame(None, title='Laevade pommitamine', style=style, size=size)
-      wx.lib.inspection.InspectionTool().Show()
       self.MainLoop()
 
 
@@ -931,6 +1069,35 @@ def resetOutput(): #taastab tõenäosustabeli algse seisu
                          [0,0,0,0,0,0,0,0,0,0],
                          [0,0,0,0,0,0,0,0,0,0]])
 
+def resetPlayermatrix():
+   global playermatrix
+   global matrix
+
+   playermatrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [2,2,2,2,2,2,2,2,2,2,2]])
+
+   matrix = np.array([[0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [0,0,0,0,0,0,0,0,0,0,2],
+                       [2,2,2,2,2,2,2,2,2,2,2]])
+   paigutaLaevad()
+
 
 ##### AI Placing functions ---------------------------------------------------------------
 
@@ -947,7 +1114,7 @@ def randomCords(): # Valib suvaka koha laual, kus ei ole juba laeva
     
     return x, y
 
-def eiOleLaevaKõrval(x, y): # Kas antud cordi 1 block raadiuses on teine laev?
+def eiOleLaevaKõrval(x, y): # Kas antud coordi 1 block raadiuses on teine laev?
     if matrix[y][x] != 1 and matrix[y-1][x+1] != 1 and matrix[y][x+1] != 1 and matrix[y+1][x+1] != 1 and matrix[y-1][x] != 1 and matrix[y+1][x] != 1 and matrix[y-1][x-1] != 1 and matrix[y][x-1] != 1 and matrix[y+1][x-1] != 1:
         return True         # Ei ole laeva
     return False            # On laev
@@ -967,7 +1134,7 @@ def placeLaev():            # Proovib paigutada laeva
     x, y = randomCords()
     laev = laevad[randint(0, len(laevad)) - 1]                      # Võtab suvaka numbri laevade listi pikkusest, teeb sellest indexi ja valib selle indexiga listist laeva
     
-    if laev in laevad and matrix[y][x] != 1:                        # Kui valitud laev ja kordinaanid ppole juba kasutuses
+    if laev in laevad and matrix[y][x] != 1:                        # Kui valitud laev ja koordinaadid ppole juba kasutuses
         teljed = {}
         if x+laev-1 < 10 and x-laev+1 >= 0:                         # Kas x teljel on selle laeva jaoks ruumi
             teljed["0"] = True
@@ -1030,7 +1197,7 @@ def placeLaev():            # Proovib paigutada laeva
                     placed = True
                 elif valik == "alla":
                     for i in range(laev):
-                        placedCords.append([x+1, y+i])
+                        placedCords.append([x, y+i])
                         matrix[y+i][x] = 1
 
                     updateLaevadeSõnastik(laev, placedCords)
@@ -1050,24 +1217,35 @@ def replaceIfZero(x, y):
         playermatrix[y][x] = 1
 
 def aiLask(self): #funktsioon kutsub välja aiLasi funktsiooni kordinaatidega, ootab vastuseks 0-6 integeri
-   global hitCoords
+    global hitCoords
+    print("--------------------------------------")
+    print(f"hitCoords: {hitCoords}")
+    print(playermatrix)
+    resetOutput()
+    if hitCoords != []:
+        koordinaadid = destroy()
+        print("destroy")
+    else:
+        koordinaadid = seek()
 
-   resetOutput()
-   if hitCoords:
-      kordinaadid = destroy()
-   else:
-      kordinaadid = seek()
-
-   vastus = self.aiLasi(kordinaadid)
+    vastus = self.aiLasi(koordinaadid)
+    print(f"coords: {koordinaadid}")
+    print(f"vastus: {vastus}")
    
-   if vastus == 1:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
-      hitCoords.append(kordinaadid)
-   elif vastus > 1 and vastus <6:
-      laevad.remove(vastus)
-      hitCoords.append(kordinaadid)
-      sinkship()
-   ## Kui vastus kuus, siis winstate UI poole peal
-
+    if vastus == 0:             #valmistan destroy funktsiooni ette potentsiaalseks leiuks
+        print("MISS")
+        playermatrix[koordinaadid[0]][koordinaadid[1]] = 1
+    elif vastus == 1:
+        print("HIT")
+        hitCoords.append([koordinaadid[1], koordinaadid[0]]) #transponeerin koordinaadid, et need vastaksid array indeksitele 
+    elif vastus > 1 and vastus <6:
+        print(f"SINK {vastus}")
+        laevad2.remove(vastus)
+        hitCoords.append([koordinaadid[1], koordinaadid[0]]) #transponeerin koordinaadid, et need vastaksid array indeksitele
+        sinkship()
+        print("sinkship called")
+    ## Kui vastus kuus, siis winstate UI poole peal
+    print(outputmatrix)
 hitCoords = []
 
 def sinkship():
@@ -1088,6 +1266,7 @@ def sinkship():
     hitCoords.clear()
 
 def leiaNaabrid(coords): #On natuke valmis
+
     #üleval
     ruum = coords[1]-4 #trust me
     if ruum > 0:
@@ -1095,7 +1274,7 @@ def leiaNaabrid(coords): #On natuke valmis
     for i in range(1,5 + ruum):
         if playermatrix[coords[1]-i][coords[0]] == 0 and (coords[0],coords[1]-i) not in hitCoords:
             for j in [2,3,4,5]:
-                if j in laevad and j >= i+1 and j <= abs(ruum)+1:
+                if j >= i+1:
                     outputmatrix[coords[1]-i][coords[0]] += 1
         elif playermatrix[coords[1]-i][coords[0]] != 0:
             break
@@ -1106,7 +1285,7 @@ def leiaNaabrid(coords): #On natuke valmis
     for i in range(1, ruum+1):
         if playermatrix[coords[1] + i][coords[0]] == 0 and (coords[0], coords[1] + i) not in hitCoords:
             for j in [2, 3, 4, 5]:
-                if j in laevad and j >= i + 1:
+                if j >= i + 1:
                     outputmatrix[coords[1] + i][coords[0]] += 1
         elif playermatrix[coords[1] - i][coords[0]] != 0:
             break
@@ -1117,7 +1296,7 @@ def leiaNaabrid(coords): #On natuke valmis
     for i in range(1, 5 + ruum):
         if playermatrix[coords[1]][coords[0] - i] == 0 and (coords[0]- i, coords[1]) not in hitCoords:
             for j in [2, 3, 4, 5]:
-                if j in laevad and j >= i + 1:
+                if j >= i + 1:
                     outputmatrix[coords[1]][coords[0] - i] += 1
         elif playermatrix[coords[1] - i][coords[0]] != 0:
             break
@@ -1130,12 +1309,23 @@ def leiaNaabrid(coords): #On natuke valmis
         #     break
         if playermatrix[coords[1]][coords[0] + i] == 0 and (coords[0] + i, coords[1]) not in hitCoords:
             for j in [2, 3, 4, 5]:
-                if j in laevad and j >= i + 1:
+                if j >= i + 1:
                     outputmatrix[coords[1]][coords[0] + i] += 1
         elif playermatrix[coords[1] - i][coords[0]] != 0:
-            break
+            break 
+"""     if ishorizontal == 0: #esimene hit
+        if coords[1] > 0 and playermatrix[coords[1]-1][coords[0]] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] < 9 and playermatrix[coords[1]+1][coords[0]] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] > 0 and playermatrix[coords[1]][coords[0]-1] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1
+        if coords[1] < 9 and playermatrix[coords[1]][coords[0]+1] == 0:
+            outputmatrix[coords[1]-1][coords[0]] = 1 """
+
 
 def seek():
+    print("seek jookseb")
     global playermatrix
     global outputmatrix
 
@@ -1145,20 +1335,49 @@ def seek():
     findHoles(playermatrix) 
     playermatrix = playermatrix.T
     outputmatrix = outputmatrix.T
-
-    vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
+    suurim = outputmatrix.argmax()
+    if len(str(suurim)) == 1:
+        vastus = [0, suurim]
+    else:
+        vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
     return vastus
 
+ishorizontal = 0
 def destroy(): #laseb põhja juba leitud laevu
     global hitCoords
     global outputmatrix
+    global ishorizontal
+    global playermatrix
+    if len(hitCoords) >= 4:
+        print("VIIENE!!!")
+        if hitCoords[0][1] == hitCoords[1][1]: #laev on horisontaalne
+            if hitCoords[3][0] < 10 and [hitCoords[3][0]-1,hitCoords[3][1]] not in hitCoords and playermatrix[hitCoords[3][1]][hitCoords[3][0]-1] == 0:
+               print([[hitCoords[3][0]-1],[hitCoords[3][1]]])
+               return (hitCoords[3][1], hitCoords[3][0]-1)
+            else:
+               print("lasen alla")
+               return (hitCoords[3][1], hitCoords[3][0]+1)
+
+        else: #laev on püsti
+            print("püsti")
+            if hitCoords[3][1] < 10 and [hitCoords[3][0],hitCoords[3][1]-1] not in hitCoords and playermatrix[hitCoords[3][1]-1][hitCoords[3][0]] == 0:
+               print([[hitCoords[3][0]],[hitCoords[3][1]-1]])
+               return (hitCoords[3][1]-1, hitCoords[3][0])
+            else:
+               print("lasen alla")
+               return (hitCoords[3][1]+1, hitCoords[3][0])
+
     for i in hitCoords:
         leiaNaabrid(i)
-
-    vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
+    suurim = outputmatrix.argmax()
+    if len(str(suurim)) == 1:
+        vastus = [0, suurim]
+    else:
+        vastus = [int(str(outputmatrix.argmax())[0]), int(str(outputmatrix.argmax())[1])]
     return vastus
 
 def findHoles(matrix):
+    print("finding holes")
     for reacounter in range(10):
         rida=matrix[reacounter]
         tyhi = (rida[0]==0)
@@ -1174,28 +1393,33 @@ def findHoles(matrix):
                 if rida[i]==0:
                     tyhjaalgus=i
                     tyhi=True
+    
 
 def fillrow(rida, start, end):
+    global outputmatrix
+    print("filled row")
     pikkus = end - start
     for i in range(pikkus):
         lisa = 0
         for l in [2,3,4,5]:
-            if l in laevad and l<=pikkus:
-                #print(f"Küsin elementi {pikkus-2}, {l-2}, {i}")
+            print("got this far")
+            if l in laevad2 and l<=pikkus:
+                print("got further")
+                print(f"Küsin elementi {pikkus-2}, {l-2}, {i}")
                 lisa += probtable[pikkus-2][l-2][i]
         outputmatrix[rida][start+i] += lisa
+        print("lisasin rea")
 
 
 ##### Handle opponents shot ---------------------------------------------------------------
 
 def playerLasi(x, y):
-    cords = [x, y]                          # Lasu kordinaanid listina, nagu on ka sõnastiksu
+    cords = [y, x]                          # Lasu koordinaadid listina, nagu on ka sõnastiksu
     for i in placedLaevad.keys():           # Iterate läbi iga meie laual oleva laeva
         if i == 3.1:                        # Suurus 3 kahte paati eristatud nii, et üks neist on 3.1
             laevaSuurus = 3                 # Laevasuurus siiski 3, isegi, kui tähistatud 3.1
         else:
             laevaSuurus = i                 # Teisi laeva suurusi 1, seega saame otsu suuruse võtta keyst
-        
         if cords in placedLaevad[i]:        # Kui lasu kordinaat on sama mingi meie paadiosaga
             oldMap = placedLaevad[i]        # Vanad selle laeva allesolevate tükkkide cordid
             oldMap.pop(oldMap.index(cords)) # Võta olemasolevate tükkide cordidest ära pihta saanu
@@ -1211,4 +1435,5 @@ def playerLasi(x, y):
                 return 1                    # Ütle, et saadi pihta
     return 0                                # Kui kuskile pihta ei saadud, vasta vastavalt
 
+paigutaLaevad()
 gui = app()
